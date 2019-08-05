@@ -3,7 +3,7 @@
 namespace ArgsAnalyzer
 {
     public partial class ArgsParser<TOption>
-    where TOption : new()
+    where TOption : class, new()
     {
     }
 }
