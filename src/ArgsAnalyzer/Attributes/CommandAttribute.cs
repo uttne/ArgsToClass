@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ArgsAnalyzer.Attributes
+﻿namespace ArgsAnalyzer.Attributes
 {
-    public class CommandAttribute:Attribute
+    public class CommandAttribute: SchemaAttribute
     {
         public string Name { get; }
         public string Description { get; }

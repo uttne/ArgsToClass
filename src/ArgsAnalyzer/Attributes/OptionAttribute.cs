@@ -2,9 +2,8 @@ using System;
 
 namespace ArgsAnalyzer.Attributes
 {
-
     [AttributeUsage(AttributeTargets.Property)]
-    public class OptionAttribute : Attribute
+    public class OptionAttribute : SchemaAttribute
     {
         /// <summary>
         /// Option property attribute

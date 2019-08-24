@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 
 namespace ArgsAnalyzer.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class OptionIgnoreAttribute : SchemaAttribute
+    public class SchemaAttribute : Attribute
     {
+
     }
 }
