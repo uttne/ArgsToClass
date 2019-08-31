@@ -1,4 +1,5 @@
-﻿using ArgsAnalyzer.Attributes;
+﻿using System.Collections.Generic;
+using ArgsAnalyzer.Attributes;
 using Xunit;
 
 namespace ArgsAnalyzer.Tests
@@ -127,5 +128,23 @@ namespace ArgsAnalyzer.Tests
             var parser = new ArgsParser<Option>();
         }
 
+        [Fact]
+        public void ParseToTokensTest()
+        {
+            var parser = new ArgsParser<Option>();
+
+            var schema = new CommandSchemaBuilder()
+            {
+
+            }.Build();
+            string[] args = {"-help"};
+            var actual = parser.ParseToTokens(schema, args);
+
+            TokenBase[] expected = new []
+            {
+                OptionToken.
+            };
+            Assert.Equal(expected, actual);
+        }
     }
 }

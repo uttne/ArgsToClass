@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using ArgsAnalyzer.Attributes;
 using ArgsAnalyzer.Exceptions;
+using static System.String;
 
 namespace ArgsAnalyzer
 {
@@ -19,6 +20,11 @@ namespace ArgsAnalyzer
 
         public ArgsParser()
         {
+            var schemaParser = new SchemaParser<TOption>();
+
+            _rootSchema = schemaParser.Parse();
+
+
             var propertyInfos = typeof(TOption).GetProperties();
 
             var options = propertyInfos
@@ -89,8 +95,65 @@ namespace ArgsAnalyzer
             return optionTexts != null && optionTexts.Length != 0;
         }
 
+
+
+
+
+        private readonly RootSchema _rootSchema;
+
+
+        public IEnumerable<TokenBase> ParseToTokens(SchemaBase schema, string[] args)
+        {
+            throw new NotImplementedException();
+        }
+
         public IArgsData<TOption> Parse(string[] args)
         {
+            Regex optionRegex = new Regex(@"^(-{1,2}|/)([a-zA-Z0-9\-]+)($|=(.*)$)");
+
+            SchemaBase schema = _rootSchema;
+            var tokens = new List<TokenBase>();
+            var extra = new List<string>();
+            foreach (var arg in args)
+            {
+                var optionMatch = optionRegex.Match(arg);
+
+                if (optionMatch.Success)
+                {
+                    var optionPrefix = optionMatch.Groups[1].Value;
+                    var optionName = optionMatch.Groups[2].Value;
+
+
+                    var option = schema.Options.FirstOrDefault(x =>
+                        string.Equals(x.LongName, arg, StringComparison.OrdinalIgnoreCase));
+                    if (option == null && optionPrefix != "--")
+                        option = null;
+
+                }
+                else
+                {
+                    var prevToken = tokens.LastOrDefault();
+                    if(prevToken is OptionToken prevOptionToken)
+                    {
+                        if (prevOptionToken.IsSwitch == false)
+                        {
+                            tokens.Add(new ValueToken(arg));
+                            continue;
+                        }
+                    }
+
+                    var command = schema.Commands.FirstOrDefault(x => string.Equals(x.Name, arg, StringComparison.OrdinalIgnoreCase));
+                    if (command != null)
+                    {
+                        tokens.Add(CommandToken.Create(command));
+                        continue;
+                    }
+                }
+
+
+            }
+            
+
             var ret = new TOption();
             var propertyInfoSet = new HashSet<PropertyInfo>();
 
