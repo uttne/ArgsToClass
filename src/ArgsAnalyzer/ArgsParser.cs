@@ -123,6 +123,12 @@ namespace ArgsAnalyzer
                     var optionPrefix = optionMatch.Groups[1].Value;
                     var optionName = optionMatch.Groups[2].Value;
 
+                    if (optionMatch.Groups[4].Success)
+                    {
+                        var value = optionMatch.Groups[4].Value;
+                    }
+                    
+
 
                     var option = schema.Options.FirstOrDefault(x =>
                         string.Equals(x.LongName, arg, StringComparison.OrdinalIgnoreCase));
