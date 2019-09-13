@@ -143,7 +143,37 @@ namespace ArgsAnalyzer
         }
     }
 
-    public sealed class ExtraToken
+    public sealed class SwitchToken : TokenBase
+    {
+        public bool On { get; }
+
+        public SwitchToken(bool on)
+        {
+            On = on;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as SwitchToken);
+        }
+
+        private bool Equals(SwitchToken other)
+        {
+            return other != null
+                   && base.Equals(other) 
+                   && On == other.On;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (base.GetHashCode() * 397) ^ On.GetHashCode();
+            }
+        }
+    }
+
+    public sealed class ExtraToken : TokenBase
     {
         public string Value { get; }
 
@@ -159,12 +189,17 @@ namespace ArgsAnalyzer
 
         private bool Equals(ExtraToken other)
         {
-            return other != null && string.Equals(Value, other.Value);
+            return other != null
+                   && base.Equals(other) 
+                   && string.Equals(Value, other.Value);
         }
 
         public override int GetHashCode()
         {
-            return (Value != null ? Value.GetHashCode() : 0);
+            unchecked
+            {
+                return (base.GetHashCode() * 397) ^ (Value != null ? Value.GetHashCode() : 0);
+            }
         }
     }
 

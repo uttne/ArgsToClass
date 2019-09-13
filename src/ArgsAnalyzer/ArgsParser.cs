@@ -5,10 +5,59 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using ArgsAnalyzer.Attributes;
 using ArgsAnalyzer.Exceptions;
-using static System.String;
 
 namespace ArgsAnalyzer
 {
+    public readonly struct ImmVal<T>
+    {
+        public readonly T Value;
+        public readonly bool HasValue;
+
+        public ImmVal(T value,bool hasValue)
+        {
+            Value = value;
+            HasValue = hasValue;
+        }
+
+        public static implicit operator T (ImmVal<T> x)
+        {
+            return x.Value;
+        }
+
+        public static implicit operator ImmVal<T>(T x)
+        {
+            return ImmVal.Value(x);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is ImmVal<T> val)
+                return Equals(val);
+            return false;
+        }
+
+        public bool Equals(ImmVal<T> other)
+        {
+            return EqualityComparer<T>.Default.Equals(Value, other.Value) && HasValue == other.HasValue;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (EqualityComparer<T>.Default.GetHashCode(Value) * 397) ^ HasValue.GetHashCode();
+            }
+        }
+    }
+
+    public static class ImmVal
+    {
+        public static ImmVal<T> Value<T>(T value)
+        {
+            return new ImmVal<T>(value, true);
+        }
+    }
+
     public partial class ArgsParser<TOption>
         where TOption : class, new()
     {
@@ -21,9 +70,10 @@ namespace ArgsAnalyzer
         public ArgsParser()
         {
             var schemaParser = new SchemaParser<TOption>();
-
+            
             _rootSchema = schemaParser.Parse();
 
+            ImmVal<int> a;
 
             var propertyInfos = typeof(TOption).GetProperties();
 
@@ -107,57 +157,132 @@ namespace ArgsAnalyzer
             throw new NotImplementedException();
         }
 
-        public IArgsData<TOption> Parse(string[] args)
-        {
-            Regex optionRegex = new Regex(@"^(-{1,2}|/)([a-zA-Z0-9\-]+)($|=(.*)$)");
 
+        public class ArgToken
+        {
+            public ArgToken(string arg, bool isOptionFormat, 
+                ImmVal<string> prefix = default, 
+                ImmVal<string> name = default,
+                ImmVal<string> @switch = default,
+                ImmVal<string> value = default)
+            {
+                Prefix = prefix;
+                Name = name;
+                Switch = @switch;
+                Value = value;
+                Arg = arg;
+                IsOptionFormat = isOptionFormat;
+            }
+
+            public string Arg { get; }
+            public bool IsOptionFormat { get; }
+            public ImmVal<string> Prefix { get; }
+            public ImmVal<string> Name { get; }
+            public ImmVal<string> Value { get; }
+            public ImmVal<string> Switch { get; }
+
+            private static readonly Regex OptionRegex = new Regex(@"^(-{1,2}|/)([a-zA-Z0-9\-]+?)($|([+])$|(-)$|=(.*)$)",RegexOptions.Compiled);
+
+            public static ArgToken Create(string arg)
+            {
+                var match = OptionRegex.Match(arg);
+
+                if (match.Success == false)
+                    return new ArgToken(arg, false);
+
+                var prefix = match.Groups[1].Success ? ImmVal.Value(match.Groups[1].Value) : default;
+                var name = match.Groups[2].Success ? ImmVal.Value(match.Groups[2].Value) : default;
+                var @switch = 
+                    match.Groups[4].Success ? ImmVal.Value(match.Groups[4].Value) :
+                    match.Groups[5].Success ? ImmVal.Value(match.Groups[5].Value) : default;
+                var value = match.Groups[6].Success ? ImmVal.Value(match.Groups[6].Value) : default;
+
+                return new ArgToken(arg, true, prefix, name, @switch, value);
+            }
+        }
+
+        public IReadOnlyList<TokenBase> ParseToTokens(string[] args)
+        {
             SchemaBase schema = _rootSchema;
             var tokens = new List<TokenBase>();
-            var extra = new List<string>();
+
+            bool nextIsValue = false;
             foreach (var arg in args)
             {
-                var optionMatch = optionRegex.Match(arg);
-
-                if (optionMatch.Success)
+                if (nextIsValue)
                 {
-                    var optionPrefix = optionMatch.Groups[1].Value;
-                    var optionName = optionMatch.Groups[2].Value;
+                    var valueToken = new ValueToken(arg);
+                    tokens.Add(valueToken);
+                    nextIsValue = false;
+                    continue;
+                }
 
-                    if (optionMatch.Groups[4].Success)
-                    {
-                        var value = optionMatch.Groups[4].Value;
-                    }
-                    
+                var argToken = ArgToken.Create(arg);
 
-
+                if (argToken.IsOptionFormat)
+                {
+                    var name = argToken.Name.Value.ToLower();
                     var option = schema.Options.FirstOrDefault(x =>
-                        string.Equals(x.LongName, arg, StringComparison.OrdinalIgnoreCase));
-                    if (option == null && optionPrefix != "--")
-                        option = null;
+                        string.Equals(x.LongName, name, StringComparison.OrdinalIgnoreCase));
+                    if (option != null)
+                    {
+                        var optionToken = OptionToken.Create(option);
+                        tokens.Add(optionToken);
 
+                        if (option.IsSwitch)
+                        {
+                            var switchToken = new SwitchToken(argToken.Switch != "-");
+                            tokens.Add(switchToken);
+                        }
+                        else if (argToken.Value.HasValue)
+                        {
+                            var valueToken = new ValueToken(argToken.Value);
+                            tokens.Add(valueToken);
+                        }
+                        else
+                        {
+                            nextIsValue = true;
+                        }
+                        continue;
+                    }
+
+                    if (argToken.Prefix == "-" || argToken.Prefix == "/")
+                    {
+                        var options = schema.Options
+                            .Where(x => x.IsSwitch)
+                            .Where(x => x.ShortName.HasValue)
+                            .Where(x => 0 <= name.IndexOf(char.ToLower(x.ShortName.Value)))
+                            .ToArray();
+                        foreach (var optionSchema in options)
+                        {
+                            var optionToken = OptionToken.Create(optionSchema);
+                            tokens.Add(optionToken);
+                            var switchToken = new SwitchToken(true);
+                            tokens.Add(switchToken);
+                        }
+                    }
                 }
                 else
                 {
-                    var prevToken = tokens.LastOrDefault();
-                    if(prevToken is OptionToken prevOptionToken)
-                    {
-                        if (prevOptionToken.IsSwitch == false)
-                        {
-                            tokens.Add(new ValueToken(arg));
-                            continue;
-                        }
-                    }
-
                     var command = schema.Commands.FirstOrDefault(x => string.Equals(x.Name, arg, StringComparison.OrdinalIgnoreCase));
                     if (command != null)
                     {
                         tokens.Add(CommandToken.Create(command));
+                        schema = command;
                         continue;
                     }
                 }
 
-
+                var extraToken = new ExtraToken(arg);
+                tokens.Add(extraToken);
             }
+
+            return tokens;
+        }
+
+        public IArgsData<TOption> Parse(string[] args)
+        {
+            
             
 
             var ret = new TOption();

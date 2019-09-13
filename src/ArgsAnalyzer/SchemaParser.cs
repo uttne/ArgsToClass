@@ -164,13 +164,13 @@ namespace ArgsAnalyzer
 
     public sealed class OptionSchema : SchemaBase
     {
-        public char ShortName { get; }
+        public ImmVal<char> ShortName { get; }
         public string LongName { get; }
         public string Description { get; }
         public PropertyInfo PropertyInfo { get; }
         public bool IsSwitch { get; }
 
-        public OptionSchema(char shortName,string longName,string description, PropertyInfo propertyInfo)
+        public OptionSchema(ImmVal<char> shortName,string longName,string description, PropertyInfo propertyInfo)
             : base(new CommandSchema[0], new OptionSchema[0])
         {
             ShortName = shortName;
@@ -182,7 +182,7 @@ namespace ArgsAnalyzer
 
         public static OptionSchema Create(OptionAttribute optionAttribute,PropertyInfo propertyInfo)
         {
-            var shortName = optionAttribute?.ShortName ?? (char)0;
+            var shortName = optionAttribute != null ? ImmVal.Value(optionAttribute.ShortName) : default;
             var longName = optionAttribute?.LongName ?? ConvertOptionName(propertyInfo.Name);
             var description = optionAttribute?.Description;
             return new OptionSchema(shortName, longName, description, propertyInfo);
