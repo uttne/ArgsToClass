@@ -128,22 +128,27 @@ namespace ArgsAnalyzer.Tests
             var parser = new ArgsParser<Option>();
         }
 
+        public class ParseToTokensTestOption
+        {
+            [Option(description:"help show")]
+            public bool Help { get; set; }
+        }
+
         [Fact]
         public void ParseToTokensTest()
         {
-            var parser = new ArgsParser<Option>();
+            var schemaParser = new SchemaParser<ParseToTokensTestOption>();
 
-            var schema = new CommandSchemaBuilder()
-            {
+            var rootSchema = schemaParser.Parse();
 
-            }.Build();
             string[] args = {"-help"};
-            var actual = parser.ParseToTokens(schema, args);
+            var actual = ArgsParser.ParseToTokens(rootSchema, args);
 
-            TokenBase[] expected = new []
-            {
-                OptionToken.
+            TokenBase[] expected = {
+                new OptionToken('\0',"help","help show",true),
+                new SwitchToken(true), 
             };
+            
             Assert.Equal(expected, actual);
         }
     }
