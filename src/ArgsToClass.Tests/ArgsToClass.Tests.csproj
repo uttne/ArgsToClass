@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ArgsAnalyzer\ArgsAnalyzer.csproj" />
+    <ProjectReference Include="..\ArgsToClass\ArgsToClass.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
-MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgsAnalyzer", "ArgsAnalyzer\ArgsAnalyzer.csproj", "{000A13A7-C01F-4E51-948A-890C2BBA1C3D}"
+# Visual Studio 16
+VisualStudioVersion = 16.0.29123.88
+MinimumVisualStudioVersion = 16.0.29123.88
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgsToClass", "ArgsToClass\ArgsToClass.csproj", "{000A13A7-C01F-4E51-948A-890C2BBA1C3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgsAnalyzer.Tests", "ArgsAnalyzer.Tests\ArgsAnalyzer.Tests.csproj", "{30D8B08B-8365-4438-926C-30C53247C64F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgsToClass.Tests", "ArgsToClass.Tests\ArgsToClass.Tests.csproj", "{30D8B08B-8365-4438-926C-30C53247C64F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample", "Sample\Sample.csproj", "{61E15065-427A-49B7-8C36-11DDDC23D536}"
 EndProject
