@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using ArgsAnalyzer.Attributes;
 using Xunit;
 
@@ -142,14 +143,27 @@ namespace ArgsAnalyzer.Tests
             var rootSchema = schemaParser.Parse();
 
             string[] args = {"-help"};
-            var actual = ArgsParser.ParseToTokens(rootSchema, args);
+            var actual = ArgsParser.ParseToTokenSchemaPairs(rootSchema, args);
 
             TokenBase[] expected = {
-                new OptionToken('\0',"help","help show",true),
-                new SwitchToken(true), 
+                new OptionToken('\0',"help","help show",true,"true"),
             };
             
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected, actual.Select(x=>x.Item1).ToArray());
+            ;
         }
+
+        [Fact]
+        public void ParseTest()
+        {
+            var parser = new ArgsParser<Option>();
+
+            string[] args = new []{"-a" , "value"};
+            var actual = parser.Parse(args);
+
+            Assert.Equal("value", actual.Option.Alpha);
+        }
+
+
     }
 }

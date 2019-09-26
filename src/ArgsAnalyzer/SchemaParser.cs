@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SqlTypes;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using ArgsAnalyzer.Attributes;
@@ -13,6 +14,11 @@ namespace ArgsAnalyzer
 
     public class SchemaParser<T>
     {
+        public SchemaBase GetSchema<TResult>(RootSchema rootSchema ,Expression<Func<T,TResult>> expression)
+        {
+            throw new NotImplementedException();
+        }
+
         public RootSchema Parse() =>
             new RootSchema(GetCommandSchemata(typeof(T)), GetOptionSchemata(typeof(T)));
 

@@ -32,18 +32,20 @@ namespace ArgsAnalyzer
         public string LongName { get; }
         public string Description { get; }
         public bool IsSwitch { get; }
-        public OptionToken(char shortName,string longName,string description,bool isSwitch)
+        public string Value { get; }
+        public OptionToken(char shortName,string longName,string description,bool isSwitch,string value)
         {
             ShortName = shortName;
             LongName = longName;
             Description = description;
             IsSwitch = isSwitch;
+            Value = value;
         }
         
 
-        public static OptionToken Create(OptionSchema schema)
+        public static OptionToken Create(OptionSchema schema,string value)
         {
-            return new OptionToken(schema.ShortName, schema.LongName, schema.Description, schema.IsSwitch);
+            return new OptionToken(schema.ShortName, schema.LongName, schema.Description, schema.IsSwitch, value);
         }
 
         public override bool Equals(object obj)
@@ -109,66 +111,6 @@ namespace ArgsAnalyzer
                 hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
                 return hashCode;
-            }
-        }
-    }
-
-    public sealed class ValueToken : TokenBase
-    {
-        public string Value { get; }
-
-        public ValueToken(string value)
-        {
-            Value = value;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as ValueToken);
-        }
-
-        private bool Equals(ValueToken other)
-        {
-            return other != null 
-                   && base.Equals(other) 
-                   && string.Equals(Value, other.Value);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (base.GetHashCode() * 397) ^ (Value != null ? Value.GetHashCode() : 0);
-            }
-        }
-    }
-
-    public sealed class SwitchToken : TokenBase
-    {
-        public bool On { get; }
-
-        public SwitchToken(bool on)
-        {
-            On = on;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as SwitchToken);
-        }
-
-        private bool Equals(SwitchToken other)
-        {
-            return other != null
-                   && base.Equals(other) 
-                   && On == other.On;
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (base.GetHashCode() * 397) ^ On.GetHashCode();
             }
         }
     }
