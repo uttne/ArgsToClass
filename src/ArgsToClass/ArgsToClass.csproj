@@ -2,6 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>ArgsToClass</PackageId>
+    <Version>0.0.1-alpha</Version>
+    <Title>ArgsToClass</Title>
+    <Authors>uttne</Authors>
+    <Description>Parse command line arguments and create class data from it.</Description>
+    <Copyright>Copyright (c) 2019 uttne</Copyright>
+    <PackageProjectUrl>https://github.com/uttne/ArgsToClass</PackageProjectUrl>
+    <PackageLicense>https://github.com/uttne/ArgsToClass/blob/master/LICENSE</PackageLicense>
+    <RepositoryUrl>https://github.com/uttne/ArgsToClass.git</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
   </PropertyGroup>
 
 </Project>
