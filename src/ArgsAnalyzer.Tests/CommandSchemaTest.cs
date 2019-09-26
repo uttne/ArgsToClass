@@ -16,19 +16,19 @@ namespace ArgsAnalyzer.Tests
             {
                 commands[i] = new CommandSchemaBuilder()
                 {
-                    Commands = new[]
+                    Commands = new List<CommandSchema>()
                     {
                         new CommandSchemaBuilder()
                         {
                             Name = "command1",
                             Description = "description1",
                             PropertyInfo = typeof(CommandSchema).GetProperty(nameof(CommandSchema.PropertyInfo)),
-                            Commands = new[]
+                            Commands = new List<CommandSchema>()
                             {
                                 new CommandSchemaBuilder().Build(),
                                 null,
                             },
-                            Options = new []
+                            Options = new List<OptionSchema>()
                             {
                                 new OptionSchemaBuilder().Build(),
                                 null,
@@ -39,12 +39,12 @@ namespace ArgsAnalyzer.Tests
                             Name = "command2",
                             Description = "description2",
                             PropertyInfo = typeof(CommandSchema).GetProperty(nameof(CommandSchema.PropertyInfo)),
-                            Commands = new[]
+                            Commands = new List<CommandSchema>()
                             {
                                 new CommandSchemaBuilder().Build(),
                                 null,
                             },
-                            Options = new []
+                            Options = new List<OptionSchema>()
                             {
                                 new OptionSchemaBuilder().Build(),
                                 null,
@@ -53,7 +53,7 @@ namespace ArgsAnalyzer.Tests
                         new CommandSchemaBuilder().Build(),
                         null,
                     },
-                    Options = new[]
+                    Options = new List<OptionSchema>()
                     {
                         new OptionSchemaBuilder()
                         {

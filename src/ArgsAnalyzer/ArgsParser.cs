@@ -1,159 +1,164 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using ArgsAnalyzer.Attributes;
-using ArgsAnalyzer.Exceptions;
 
 namespace ArgsAnalyzer
 {
-    public partial class ArgsParser<TOption>
-        where TOption : class, new()
+    public class ArgsParser
     {
-        private readonly Dictionary<string, Option> _optionDic = new Dictionary<string, Option>();
-        private readonly Dictionary<string, Option> _shortOptionDic = new Dictionary<string, Option>();
-        private readonly Dictionary<string, Command> _commandDic = new Dictionary<string, Command>();
-        private readonly Option _defaultOption;
-
-
-        public ArgsParser()
-        {
-            var propertyInfos = typeof(TOption).GetProperties();
-
-            var options = propertyInfos
-                .Where(x => x.CanWrite)
-                .Select(propertyInfo => new { propertyInfo, attributs = Attribute.GetCustomAttributes(propertyInfo) })
-                .Select(x => new
-                {
-                    x.propertyInfo,
-                    option = x.attributs.OfType<OptionAttribute>().FirstOrDefault(),
-                    ignore = x.attributs.OfType<OptionIgnoreAttribute>().FirstOrDefault(),
-                    command = x.attributs.OfType<CommandAttribute>().FirstOrDefault(),
-                })
-                .Where(x => x.ignore == null)
-                .Select(x =>
-                {
-                    if (x.option != null && x.command != null)
-                        throw new ArgsAnalysisException(x.propertyInfo);
-
-                    var option = x.option != null ? Option.Create(x.propertyInfo, x.option) : null;
-                    var parameters = x.command != null ? Command.Create(x.propertyInfo, x.command) : null;
-
-                    return new { option, parameters };
-                })
+        public static IReadOnlyList<ArgToken> ParseToArgTokens(string[] args) =>
+            args.Select(ArgToken.Create)
                 .ToArray();
 
-            // Eliminate duplicate options.
-            foreach (var option in options.Where(x => x.option != null).Select(x => x.option))
-            {
-                if (option.IsDefault)
-                    _defaultOption = _defaultOption == null
-                        ? option
-                        : throw new ArgsAnalysisException(option.PropertyInfo);
-                _optionDic.Add(option.OptionHashKey, option);
-                _shortOptionDic.Add(option.ShortOptionHashKey, option);
-            }
 
-            foreach (var command in options.Where(x => x.parameters != null).Select(x => x.parameters))
-            {
-                _commandDic.Add(command.CommandHashKey, command);
-            }
-        }
-
-        private static bool IsOption(string arg, out string optionText)
+        public static IReadOnlyList<(TokenBase,SchemaBase)> ParseToTokenSchemaPairs(SchemaBase schema, string[] args)
         {
-            optionText = null;
+            if (schema == null)
+                throw new ArgumentNullException(nameof(schema));
+            if (args == null)
+                throw new ArgumentNullException(nameof(args));
 
-            var regex = new Regex("^--(.*)$", RegexOptions.Compiled);
+            var list = new List<(TokenBase, SchemaBase)>();
 
-            var match = regex.Match(arg);
-
-            if (match.Success)
-                optionText = match.Groups[1].Value.ToLower();
-
-            return optionText != null;
-        }
-
-        private static bool IsShortOption(string arg, out string[] optionTexts)
-        {
-            optionTexts = null;
-
-            var regex = new Regex("^-(.*)$", RegexOptions.Compiled);
-
-            var match = regex.Match(arg);
-
-            if (match.Success)
-                optionTexts = match.Groups[1].Value.Select(x => x.ToString()).ToArray();
-
-            return optionTexts != null && optionTexts.Length != 0;
-        }
-
-        public IArgsData<TOption> Parse(string[] args)
-        {
-            var ret = new TOption();
-            var propertyInfoSet = new HashSet<PropertyInfo>();
-
-            var defaultOption = _defaultOption;
-
-            for (var i = 0; i < args.Length; i++)
+            OptionSchema prevOption = null;
+            foreach (var arg in args)
             {
-                string GetValueText()
+                if (prevOption != null)
                 {
-                    var index = i + 1;
-                    if (0 <= index && index < args.Length)
-                        return args[index];
-                    return null;
+                    var optionToken = OptionToken.Create(prevOption, arg);
+                    list.Add((optionToken,prevOption));
+                    prevOption = null;
+                    continue;
                 }
 
-                var s = args[i];
+                var argToken = ArgToken.Create(arg);
 
-                if (IsOption(s, out var optionText))
+                if (argToken.IsOptionFormat)
                 {
-                    if (_optionDic.TryGetValue(optionText, out var option) == false)
+                    var name = argToken.Name.Value.ToLower();
+                    var option = schema.Options.FirstOrDefault(x =>
+                        ((argToken.Prefix == "--" || argToken.Prefix == "/") && string.Equals(x.LongName, name, StringComparison.OrdinalIgnoreCase))
+                        || ((argToken.Prefix == "-" || argToken.Prefix == "/") && string.Equals(x.ShortName.Value.ToString(), name, StringComparison.OrdinalIgnoreCase))
+                        );
+                    if (option != null)
                     {
-                        throw new ArgumentException($"Option '{s}' can not be specified.");
+                        if (option.IsSwitch)
+                        {
+                            var optionToken = OptionToken.Create(option, argToken.Switch != "-" ? "true" : "false");
+                            list.Add((optionToken, option));
+                        }
+                        else if (argToken.Value.HasValue)
+                        {
+                            var optionToken = OptionToken.Create(option, argToken.Value.Value);
+                            list.Add((optionToken, option));
+                        }
+                        else
+                        {
+                            prevOption = option;
+                        }
+                        continue;
                     }
 
-                    propertyInfoSet.Add(option.PropertyInfo);
-
-                    var valueText = GetValueText();
-                    option.Set(ref ret, valueText);
-
-                    if (option.IsRequiredValue == false)
-                        i++;
-                }
-                else if (IsShortOption(s, out var optionTexts))
-                {
-                    foreach (var text in optionTexts)
+                    if (argToken.Prefix == "-" || argToken.Prefix == "/")
                     {
-                        if (_shortOptionDic.TryGetValue(text, out var option) == false)
+                        var options = schema.Options
+                            .Where(x => x.IsSwitch)
+                            .Where(x => x.ShortName.HasValue)
+                            .Where(x => 0 <= name.IndexOf(char.ToLower(x.ShortName.Value)))
+                            .ToArray();
+                        foreach (var optionSchema in options)
                         {
-                            throw new ArgumentException($"Option '{text}' can not be specified.");
+                            var optionToken = OptionToken.Create(optionSchema,"true");
+                            list.Add((optionToken, optionSchema));
                         }
-
-                        propertyInfoSet.Add(option.PropertyInfo);
-
-                        var valueText = GetValueText();
-                        option.Set(ref ret, valueText);
-
-                        if (option.IsRequiredValue == false)
-                            i++;
                     }
                 }
                 else
                 {
-                    if (defaultOption == null)
+                    var command = schema.Commands.FirstOrDefault(x => string.Equals(x.Name, arg, StringComparison.OrdinalIgnoreCase));
+                    if (command != null)
+                    {
+                        list.Add((CommandToken.Create(command), command));
+                        schema = command;
                         continue;
+                    }
+                }
 
-                    defaultOption.Set(ref ret, s);
-                    propertyInfoSet.Add(defaultOption.PropertyInfo);
+                var extraToken = new ExtraToken(arg);
+                list.Add((extraToken, null));
+            }
 
-                    defaultOption = null;
+            return list;
+        }
+    }
+
+    public partial class ArgsParser<TOption>: ArgsParser
+        where TOption : class, new()
+    {
+        public ArgsParser()
+        {
+            var schemaParser = new SchemaParser<TOption>();
+            
+            _rootSchema = schemaParser.Parse();
+        }
+        
+
+        private readonly RootSchema _rootSchema;
+
+
+        public IArgsData<TOption> Parse(string[] args)
+        {
+            var rootSchema = _rootSchema;
+
+            var tokenSchemaPairs = ParseToTokenSchemaPairs(rootSchema, args);
+
+            var option = CreateOption(tokenSchemaPairs);
+
+            return option;
+        }
+
+        private IArgsData<TOption> CreateOption(IReadOnlyList<(TokenBase,SchemaBase)> tokenSchemaPairs)
+        {
+            var option = ActivateOption();
+            var hasExpressionTextHashSet = new HashSet<string>();
+            string commandExpressionName = ".";
+            var extra = new List<string>();
+
+            object cursor = option;
+
+            foreach (var (token,schema) in tokenSchemaPairs)
+            {
+                if (token is OptionToken optionToken && schema is OptionSchema optionSchema)
+                {
+                    var value = ValueParser.Parse(optionSchema.PropertyInfo.PropertyType, optionToken.Value);
+
+                    optionSchema.PropertyInfo.SetValue(cursor, value);
+
+                    hasExpressionTextHashSet.Add(commandExpressionName + "." + optionSchema.PropertyInfo.Name);
+                }
+                else if (token is CommandToken commandToken && schema is CommandSchema commandSchema)
+                {
+                    var command = Activator.CreateInstance(commandSchema.PropertyInfo.PropertyType);
+
+                    commandSchema.PropertyInfo.SetValue(cursor, command);
+                    cursor = command;
+                    commandExpressionName += "." + commandSchema.PropertyInfo.Name;
+
+                    hasExpressionTextHashSet.Add(commandExpressionName);
+                }
+                else if (token is ExtraToken extraToken && schema == null)
+                {
+                    extra.Add(extraToken.Value);
                 }
             }
 
-            throw new NotImplementedException();
+
+            return new ArgsData<TOption>(option, hasExpressionTextHashSet, extra);
+        }
+
+        private static TOption ActivateOption()
+        {
+            return Activator.CreateInstance<TOption>();
         }
 
         public string GetHelpText(object option)

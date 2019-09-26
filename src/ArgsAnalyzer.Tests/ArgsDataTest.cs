@@ -35,16 +35,18 @@ namespace ArgsAnalyzer.Tests
         public void Has_test()
         {
             var type = typeof(ArgsParser<>)
-                .GetNestedType("ArgsData", BindingFlags.NonPublic)
+                .Assembly
+                .GetType("ArgsAnalyzer.ArgsData`1")
                 .MakeGenericType(typeof(Option));
 
             var option = new Option();
             var expressionTextHashSet = new HashSet<string>()
             {
-                "Text1",
-                "Command.Help",
+                ".Text1",
+                ".Command.Help",
             };
-            var target = Activator.CreateInstance(type, option,expressionTextHashSet);
+            var extra = new string[0];
+            var target = Activator.CreateInstance(type, option, expressionTextHashSet, extra);
 
             {
                 var method = target.GetType().GetMethod("Has")
