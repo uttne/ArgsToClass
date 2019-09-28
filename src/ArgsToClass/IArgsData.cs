@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace ArgsAnalyzer
+namespace ArgsToClass
 {
     public interface IArgsData<TOption>
         where TOption : class, new()

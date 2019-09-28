@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 
-namespace ArgsAnalyzer.Tests
+namespace ArgsToClass.Tests
 {
     public class CommandSchemaTest
     {

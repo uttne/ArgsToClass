@@ -2,10 +2,10 @@
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using ArgsAnalyzer.Attributes;
-using ArgsAnalyzer.Exceptions;
+using ArgsToClass.Attributes;
+using ArgsToClass.Exceptions;
 
-namespace ArgsAnalyzer
+namespace ArgsToClass
 {
     partial class ArgsParser<TOption>
     {

@@ -1,4 +1,4 @@
-﻿namespace ArgsAnalyzer.Attributes
+﻿namespace ArgsToClass.Attributes
 {
     public class CommandAttribute: SchemaAttribute
     {

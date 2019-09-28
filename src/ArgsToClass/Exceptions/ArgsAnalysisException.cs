@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace ArgsAnalyzer.Exceptions
+namespace ArgsToClass.Exceptions
 {
     public class ArgsAnalysisException : Exception
     {

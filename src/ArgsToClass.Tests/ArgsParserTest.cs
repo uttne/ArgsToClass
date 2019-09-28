@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using ArgsAnalyzer.Attributes;
+using ArgsToClass.Attributes;
 using Xunit;
 
-namespace ArgsAnalyzer.Tests
+namespace ArgsToClass.Tests
 {
     public class ArgsParserTest
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace ArgsAnalyzer
+namespace ArgsToClass
 {
     public class ValueParser
     {

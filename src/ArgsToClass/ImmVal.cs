@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ArgsAnalyzer
+namespace ArgsToClass
 {
     public readonly struct ImmVal<T>
     {

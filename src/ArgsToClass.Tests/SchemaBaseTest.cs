@@ -7,7 +7,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using Xunit;
 
-namespace ArgsAnalyzer.Tests
+namespace ArgsToClass.Tests
 {
     class CommandSchemaBuilder : IEnumerable<SchemaBase>
     {

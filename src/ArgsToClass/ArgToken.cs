@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace ArgsAnalyzer
+namespace ArgsToClass
 {
     public class ArgToken
     {

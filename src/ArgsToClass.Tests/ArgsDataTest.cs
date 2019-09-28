@@ -7,7 +7,7 @@ using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace ArgsAnalyzer.Tests
+namespace ArgsToClass.Tests
 {
     public class ArgsDataTest
     {

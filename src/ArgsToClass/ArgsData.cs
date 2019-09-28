@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace ArgsAnalyzer
+namespace ArgsToClass
 {
     internal class ArgsData<TOption> : IArgsData<TOption>
         where TOption :class,new()

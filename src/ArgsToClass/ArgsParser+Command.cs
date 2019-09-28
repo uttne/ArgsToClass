@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Reflection;
-using ArgsAnalyzer.Attributes;
+using ArgsToClass.Attributes;
 
-namespace ArgsAnalyzer
+namespace ArgsToClass
 {
     partial class ArgsParser<TOption>
     {

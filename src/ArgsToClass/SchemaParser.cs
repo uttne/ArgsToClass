@@ -6,9 +6,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using ArgsAnalyzer.Attributes;
+using ArgsToClass.Attributes;
 
-namespace ArgsAnalyzer
+namespace ArgsToClass
 {
     #region Schema
 

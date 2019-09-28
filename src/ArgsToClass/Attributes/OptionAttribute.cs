@@ -1,6 +1,6 @@
 using System;
 
-namespace ArgsAnalyzer.Attributes
+namespace ArgsToClass.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class OptionAttribute : SchemaAttribute
