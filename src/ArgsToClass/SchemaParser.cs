@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using ArgsToClass.Attributes;
 
 namespace ArgsToClass
 {
-    #region Schema
-
     public class SchemaParser<T>
     {
         public SchemaBase GetSchema<TResult>(RootSchema rootSchema ,Expression<Func<T,TResult>> expression)
@@ -272,7 +267,4 @@ namespace ArgsToClass
             }
         }
     }
-
-
-    #endregion
 }

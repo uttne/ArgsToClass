@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ArgsToClass
+﻿namespace ArgsToClass
 {
-
-
-    #region Token
-
     public abstract class TokenBase
     {
         public override bool Equals(object obj)
@@ -144,8 +136,4 @@ namespace ArgsToClass
             }
         }
     }
-
-
-    #endregion
-
 }
