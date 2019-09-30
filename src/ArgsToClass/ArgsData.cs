@@ -9,12 +9,16 @@ namespace ArgsToClass
         where TOption :class,new()
     {
         private readonly HashSet<string> _hasExpressionTextHashSet;
+        private readonly SchemaBase _commandSchema;
+        private readonly object _command;
 
-        public ArgsData(TOption option, HashSet<string> hasExpressionTextHashSet, IReadOnlyList<string> extra)
+        public ArgsData(TOption option, HashSet<string> hasExpressionTextHashSet, IReadOnlyList<string> extra,SchemaBase commandSchema,object command)
         {
             Option = option ?? throw new ArgumentNullException(nameof(option));
 
             _hasExpressionTextHashSet = hasExpressionTextHashSet ?? throw new ArgumentNullException(nameof(hasExpressionTextHashSet));
+            _commandSchema = commandSchema;
+            _command = command;
 
             Extra = extra ?? new string[0];
         }
@@ -54,6 +58,11 @@ namespace ArgsToClass
             var expressionText = ExpressionToString(propExpression);
 
             return _hasExpressionTextHashSet.Contains(expressionText);
+        }
+
+        public (SchemaBase schema, object command) GetCommand()
+        {
+            return (_commandSchema, _command);
         }
     }
 }

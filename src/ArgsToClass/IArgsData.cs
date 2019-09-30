@@ -12,5 +12,7 @@ namespace ArgsToClass
         IReadOnlyList<string> Extra { get; }
 
         bool Has<T>(Expression<Func<TOption, T>> propExpression);
+
+        (SchemaBase schema,object command) GetCommand();
     }
 }

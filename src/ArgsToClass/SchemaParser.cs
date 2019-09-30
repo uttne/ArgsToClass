@@ -183,7 +183,7 @@ namespace ArgsToClass
 
         public static OptionSchema Create(OptionAttribute optionAttribute,PropertyInfo propertyInfo)
         {
-            var shortName = optionAttribute != null ? ImmVal.Value(optionAttribute.ShortName) : default;
+            var shortName = optionAttribute != null && optionAttribute.ShortName != '\0' ? ImmVal.Value(optionAttribute.ShortName) : default;
             var longName = optionAttribute?.LongName ?? ConvertOptionName(propertyInfo.Name);
             var description = optionAttribute?.Description;
             return new OptionSchema(shortName, longName, description, propertyInfo);

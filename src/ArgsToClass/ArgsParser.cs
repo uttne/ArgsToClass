@@ -112,19 +112,20 @@ namespace ArgsToClass
 
             var tokenSchemaPairs = ParseToTokenSchemaPairs(rootSchema, args);
 
-            var option = CreateOption(tokenSchemaPairs);
+            var option = CreateOption(rootSchema,tokenSchemaPairs);
 
             return option;
         }
 
-        private IArgsData<TOption> CreateOption(IReadOnlyList<(TokenBase,SchemaBase)> tokenSchemaPairs)
+        private IArgsData<TOption> CreateOption(SchemaBase rootSchema,IReadOnlyList<(TokenBase,SchemaBase)> tokenSchemaPairs)
         {
             var option = ActivateOption();
             var hasExpressionTextHashSet = new HashSet<string>();
             string commandExpressionName = ".";
             var extra = new List<string>();
 
-            object cursor = option;
+            object commandCursor = option;
+            SchemaBase commandSchemaCursor = rootSchema;
 
             foreach (var (token,schema) in tokenSchemaPairs)
             {
@@ -132,7 +133,7 @@ namespace ArgsToClass
                 {
                     var value = ValueParser.Parse(optionSchema.PropertyInfo.PropertyType, optionToken.Value);
 
-                    optionSchema.PropertyInfo.SetValue(cursor, value);
+                    optionSchema.PropertyInfo.SetValue(commandCursor, value);
 
                     hasExpressionTextHashSet.Add(commandExpressionName + "." + optionSchema.PropertyInfo.Name);
                 }
@@ -140,11 +141,13 @@ namespace ArgsToClass
                 {
                     var command = Activator.CreateInstance(commandSchema.PropertyInfo.PropertyType);
 
-                    commandSchema.PropertyInfo.SetValue(cursor, command);
-                    cursor = command;
+                    commandSchema.PropertyInfo.SetValue(commandCursor, command);
+                    commandCursor = command;
                     commandExpressionName += "." + commandSchema.PropertyInfo.Name;
 
                     hasExpressionTextHashSet.Add(commandExpressionName);
+
+                    commandSchemaCursor = commandSchema;
                 }
                 else if (token is ExtraToken extraToken && schema == null)
                 {
@@ -153,7 +156,7 @@ namespace ArgsToClass
             }
 
 
-            return new ArgsData<TOption>(option, hasExpressionTextHashSet, extra);
+            return new ArgsData<TOption>(option, hasExpressionTextHashSet, extra, commandSchemaCursor, commandCursor);
         }
 
         private static TOption ActivateOption()
