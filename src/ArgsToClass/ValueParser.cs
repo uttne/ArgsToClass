@@ -59,6 +59,10 @@ namespace ArgsToClass
             {
                 return value;
             }
+            else if (type == typeof(bool))
+            {
+                return bool.Parse(value);
+            }
             else
             {
                 var constructor = type.GetConstructor(BindingFlags.Public, null, new[] {typeof(string)}, null);
@@ -67,7 +71,12 @@ namespace ArgsToClass
                     return constructor.Invoke(null, new object[] {value});
                 }
 
-                var parseMethod = type.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public);
+                var parseMethod = type.GetMethod(
+                    "Parse",
+                    BindingFlags.Static | BindingFlags.Public,
+                    null,
+                    new []{typeof(string)},
+                    null);
                 if (parseMethod != null)
                 {
                     return parseMethod.Invoke(null, new object[] {value});
