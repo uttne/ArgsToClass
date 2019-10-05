@@ -3,18 +3,42 @@
 ## Usage
 
 ```
-
 class Option
 {
     public bool Help { get; set; }
+    public string Name { get; set; }
+    public int Repeat { get; set; }
 }
 
+class Program
+{
+    static void Main(string[] args)
+    {
+        // args == new []{ "--name", "test name", "--repeat", "1" }
 
-var parser = new ArgsParser<Option>();
+        var parser = new ArgsParser<Option>();
 
-var option = parser.Parse(args);
+        IArgsData<Option> data;
+        try
+        {
+            data = parser.Parse(args);
+        }
+        catch(ArgsAnalysisException ex)
+        {
+            Console.WriteLine(ex.ToString());
+            return;
+        }
+
+        Console.WriteLine($"Help   == {data.Option.Help}");     // Help == false
+        Console.WriteLine($"Name   == {data.Option.Name}");     // Name == test name
+        Console.WriteLine($"Repeat == {data.Option.Repeat}");   // Repeat == 1
+
+        Console.ReadKey();
+    }
+}
 ```
-## Option
+## Option format
+```
 -o value
 -o "value text"
 -o=value
@@ -35,9 +59,10 @@ var option = parser.Parse(args);
 /option "value text"
 /option=value
 /option="value text"
+```
 
-
-## Switch
+## Switch format
+```
 -s
 -s+
 -s-
@@ -53,4 +78,4 @@ var option = parser.Parse(args);
 /switch
 /switch+
 /switch-
-
+```
