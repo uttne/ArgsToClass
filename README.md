@@ -1,4 +1,7 @@
-# ArgsParser
+# ArgsToClass
+
+## Description
+Parse command line arguments and create class data from it.
 
 ## Usage
 
@@ -29,8 +32,8 @@ class Program
             return;
         }
 
-        Console.WriteLine($"Help   == {data.Option.Help}");     // Help == false
-        Console.WriteLine($"Name   == {data.Option.Name}");     // Name == test name
+        Console.WriteLine($"Help   == {data.Option.Help}");     // Help   == false
+        Console.WriteLine($"Name   == {data.Option.Name}");     // Name   == test name
         Console.WriteLine($"Repeat == {data.Option.Repeat}");   // Repeat == 1
 
         Console.ReadKey();
