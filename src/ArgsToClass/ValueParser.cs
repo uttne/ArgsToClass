@@ -5,7 +5,7 @@ namespace ArgsToClass
 {
     public class ValueParser
     {
-        public static object Parse(Type type,string value)
+        public static object Parse(Type type, string value)
         {
             if (type == typeof(byte))
             {
@@ -65,21 +65,21 @@ namespace ArgsToClass
             }
             else
             {
-                var constructor = type.GetConstructor(BindingFlags.Public, null, new[] {typeof(string)}, null);
+                var constructor = type.GetConstructor(BindingFlags.Public, null, new[] { typeof(string) }, null);
                 if (constructor != null)
                 {
-                    return constructor.Invoke(null, new object[] {value});
+                    return constructor.Invoke(null, new object[] { value });
                 }
 
                 var parseMethod = type.GetMethod(
                     "Parse",
                     BindingFlags.Static | BindingFlags.Public,
                     null,
-                    new []{typeof(string)},
+                    new[] { typeof(string) },
                     null);
                 if (parseMethod != null)
                 {
-                    return parseMethod.Invoke(null, new object[] {value});
+                    return parseMethod.Invoke(null, new object[] { value });
                 }
 
                 throw new InvalidOperationException();
