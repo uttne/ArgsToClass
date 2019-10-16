@@ -3,6 +3,11 @@
 ## Description
 Parse command line arguments and create class data from it.
 
+## Build status
+|Status|
+|:----:|
+|[![CircleCI](https://circleci.com/gh/uttne/ArgsToClass/tree/master.svg?style=svg)](https://circleci.com/gh/uttne/ArgsToClass/tree/master)|
+
 ## Usage
 
 ```
