@@ -131,8 +131,20 @@ namespace ArgsToClass.Tests
 
         public class ParseToTokensTestOption
         {
-            [Option(description:"help show")]
+            [Option(description:"help show",longName:"help",shortName:'h')]
             public bool Help { get; set; }
+
+            [Option(description: "alpha switch", longName: "alpha", shortName: 'a')]
+            public bool Alpha { get; set; }
+
+            [Option(description: "beta switch", longName: "beta", shortName: 'b')]
+            public bool Beta { get; set; }
+            
+            [Option(description: "gamma switch", longName: "gamma", shortName: 'g')]
+            public bool Gamma { get; set; }
+
+            [Option(description: "ab switch", longName: "ab")]
+            public bool Ab { get; set; }
         }
 
         [Fact]
@@ -146,7 +158,7 @@ namespace ArgsToClass.Tests
             var actual = ArgsParser.ParseToTokenSchemaPairs(rootSchema, args);
 
             TokenBase[] expected = {
-                new OptionToken('\0',"help","help show",true,"true"),
+                new OptionToken('h',"help","help show",true,"true"),
             };
             
             Assert.Equal(expected, actual.Select(x=>x.Item1).ToArray());
@@ -164,6 +176,90 @@ namespace ArgsToClass.Tests
             Assert.Equal("value", actual.Option.Alpha);
         }
 
+        [Fact]
+        public void SelectOptionSchemaTest()
+        {
+            var schemaParser = new SchemaParser<ParseToTokensTestOption>();
 
+            var rootSchema = schemaParser.Parse();
+
+            {
+                var schema = new[]
+                {
+                    rootSchema.Options.First(x => x.LongName == "alpha"),
+                };
+
+                var arg = ArgToken.Create("--alpha");
+
+                var actual = ArgsParser.SelectOptionSchema(rootSchema,arg);
+
+                Assert.Equal(schema,actual);
+            }
+
+            {
+                var schema = new[]
+                {
+                    rootSchema.Options.First(x => x.LongName == "alpha"),
+                };
+
+                var arg = ArgToken.Create("-alpha");
+
+                var actual = ArgsParser.SelectOptionSchema(rootSchema, arg);
+
+                Assert.Equal(schema, actual);
+            }
+
+            {
+                var schema = new[]
+                {
+                    rootSchema.Options.First(x => x.LongName == "alpha"),
+                };
+
+                var arg = ArgToken.Create("/alpha");
+
+                var actual = ArgsParser.SelectOptionSchema(rootSchema, arg);
+
+                Assert.Equal(schema, actual);
+            }
+
+            {
+                var schema = new[]
+                {
+                    rootSchema.Options.First(x => x.LongName == "alpha"),
+                };
+
+                var arg = ArgToken.Create("-alpha");
+
+                var actual = ArgsParser.SelectOptionSchema(rootSchema, arg);
+
+                Assert.Equal(schema, actual);
+            }
+
+            {
+                var schema = new[]
+                {
+                    rootSchema.Options.First(x => x.LongName == "alpha"),
+                };
+
+                var arg = ArgToken.Create("-a");
+
+                var actual = ArgsParser.SelectOptionSchema(rootSchema, arg);
+
+                Assert.Equal(schema, actual);
+            }
+
+            {
+                var schema = new[]
+                {
+                    rootSchema.Options.First(x => x.LongName == "alpha"),
+                };
+
+                var arg = ArgToken.Create("/a");
+
+                var actual = ArgsParser.SelectOptionSchema(rootSchema, arg);
+
+                Assert.Equal(schema, actual);
+            }
+        }
     }
 }

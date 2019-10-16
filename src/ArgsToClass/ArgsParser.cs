@@ -35,13 +35,11 @@ namespace ArgsToClass
 
                 if (argToken.IsOptionFormat)
                 {
-                    var name = argToken.Name.Value.ToLower();
-                    var option = schema.Options.FirstOrDefault(x =>
-                        ((argToken.Prefix == "--" || argToken.Prefix == "/") && string.Equals(x.LongName, name, StringComparison.OrdinalIgnoreCase))
-                        || ((argToken.Prefix == "-" || argToken.Prefix == "/") && string.Equals(x.ShortName.Value.ToString(), name, StringComparison.OrdinalIgnoreCase))
-                        );
-                    if (option != null)
+                    var options = GetOptionSchema(schema, argToken);
+
+                    if (options.Length == 1)
                     {
+                        var option = options[0];
                         if (option.IsSwitch)
                         {
                             var optionToken = OptionToken.Create(option, argToken.Switch != "-" ? "true" : "false");
@@ -59,18 +57,16 @@ namespace ArgsToClass
                         continue;
                     }
 
-                    if (argToken.Prefix == "-" || argToken.Prefix == "/")
+                    var name = argToken.Name.Value.ToLower();
+                    options = schema.Options
+                        .Where(x => x.IsSwitch)
+                        .Where(x => x.ShortName.HasValue)
+                        .Where(x => 0 <= name.IndexOf(char.ToLower(x.ShortName.Value)))
+                        .ToArray();
+                    foreach (var optionSchema in options)
                     {
-                        var options = schema.Options
-                            .Where(x => x.IsSwitch)
-                            .Where(x => x.ShortName.HasValue)
-                            .Where(x => 0 <= name.IndexOf(char.ToLower(x.ShortName.Value)))
-                            .ToArray();
-                        foreach (var optionSchema in options)
-                        {
-                            var optionToken = OptionToken.Create(optionSchema,"true");
-                            list.Add((optionToken, optionSchema));
-                        }
+                        var optionToken = OptionToken.Create(optionSchema, "true");
+                        list.Add((optionToken, optionSchema));
                     }
                 }
                 else
@@ -89,6 +85,26 @@ namespace ArgsToClass
             }
 
             return list;
+        }
+
+        public static OptionSchema[] GetOptionSchema(SchemaBase schema, ArgToken argToken)
+        {
+            var name = argToken.Name.Value.ToLower();
+            
+            var option = schema.Options.FirstOrDefault(x =>
+                (argToken.Prefix == "--" || argToken.Prefix == "-" || argToken.Prefix == "/") && string.Equals(x.LongName, name, StringComparison.OrdinalIgnoreCase));
+
+            if (option != null)
+                return new[] {option};
+
+            if ((argToken.Prefix == "-" || argToken.Prefix == "/") == false)
+                return new OptionSchema[0];
+
+            return schema.Options
+                .Where(x => x.IsSwitch)
+                .Where(x => x.ShortName.HasValue)
+                .Where(x => 0 <= name.IndexOf(char.ToLower(x.ShortName.Value)))
+                .ToArray();
         }
     }
 
