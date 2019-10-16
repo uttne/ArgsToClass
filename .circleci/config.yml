@@ -7,8 +7,8 @@ jobs:
       - checkout
       - run: find .
       - run: cd ./src/ArgsToClass.Tests
-      - run: dotnet build
-      - run: dotnet test --no-build
+      - run: dotnet build ./src/ArgsToClass.Tests/ArgsToClass.Tests.csproj
+      - run: dotnet test --no-build ./src/ArgsToClass.Tests/ArgsToClass.Tests.csproj
 workflows:
   version: 2
   build_flow:
