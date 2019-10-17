@@ -36,7 +36,7 @@ namespace ArgsToClass.Tests
         {
             var type = typeof(ArgsParser<>)
                 .Assembly
-                .GetType("ArgsAnalyzer.ArgsData`1")
+                .GetType("ArgsToClass.ArgsData`1")
                 .MakeGenericType(typeof(Option));
 
             var option = new Option();
@@ -46,7 +46,7 @@ namespace ArgsToClass.Tests
                 ".Command.Help",
             };
             var extra = new string[0];
-            var target = Activator.CreateInstance(type, option, expressionTextHashSet, extra);
+            var target = Activator.CreateInstance(type, option, expressionTextHashSet, extra, null, null);
 
             {
                 var method = target.GetType().GetMethod("Has")
