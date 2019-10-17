@@ -11,7 +11,7 @@ namespace ArgsToClass
                 .ToArray();
 
 
-        public static IReadOnlyList<(TokenBase,SchemaBase)> ParseToTokenSchemaPairs(SchemaBase schema, string[] args)
+        public static IReadOnlyList<(TokenBase, SchemaBase)> ParseToTokenSchemaPairs(SchemaBase schema, string[] args)
         {
             if (schema == null)
                 throw new ArgumentNullException(nameof(schema));
@@ -26,7 +26,7 @@ namespace ArgsToClass
                 if (prevOption != null)
                 {
                     var optionToken = OptionToken.Create(prevOption, arg);
-                    list.Add((optionToken,prevOption));
+                    list.Add((optionToken, prevOption));
                     prevOption = null;
                     continue;
                 }
@@ -90,12 +90,14 @@ namespace ArgsToClass
         public static OptionSchema[] SelectOptionSchema(SchemaBase schema, ArgToken argToken)
         {
             var name = argToken.Name.Value.ToLower();
-            
+
             var option = schema.Options.FirstOrDefault(x =>
-                (argToken.Prefix == "--" || argToken.Prefix == "-" || argToken.Prefix == "/") && string.Equals(x.LongName, name, StringComparison.OrdinalIgnoreCase));
+                ((argToken.Prefix == "--" || argToken.Prefix == "-" || argToken.Prefix == "/") && string.Equals(x.LongName, name, StringComparison.OrdinalIgnoreCase))
+                || (x.ShortName.HasValue && (argToken.Prefix == "-" || argToken.Prefix == "/") && string.Equals(x.ShortName.Value.ToString(), name, StringComparison.OrdinalIgnoreCase))
+                );
 
             if (option != null)
-                return new[] {option};
+                return new[] { option };
 
             if ((argToken.Prefix == "-" || argToken.Prefix == "/") == false)
                 return new OptionSchema[0];
@@ -108,16 +110,16 @@ namespace ArgsToClass
         }
     }
 
-    public partial class ArgsParser<TOption>: ArgsParser
+    public partial class ArgsParser<TOption> : ArgsParser
         where TOption : class, new()
     {
         public ArgsParser()
         {
             var schemaParser = new SchemaParser<TOption>();
-            
+
             _rootSchema = schemaParser.Parse();
         }
-        
+
 
         private readonly RootSchema _rootSchema;
 
@@ -128,12 +130,12 @@ namespace ArgsToClass
 
             var tokenSchemaPairs = ParseToTokenSchemaPairs(rootSchema, args);
 
-            var option = CreateOption(rootSchema,tokenSchemaPairs);
+            var option = CreateOption(rootSchema, tokenSchemaPairs);
 
             return option;
         }
 
-        private IArgsData<TOption> CreateOption(SchemaBase rootSchema,IReadOnlyList<(TokenBase,SchemaBase)> tokenSchemaPairs)
+        private IArgsData<TOption> CreateOption(SchemaBase rootSchema, IReadOnlyList<(TokenBase, SchemaBase)> tokenSchemaPairs)
         {
             var option = ActivateOption();
             var hasExpressionTextHashSet = new HashSet<string>();
@@ -143,7 +145,7 @@ namespace ArgsToClass
             object commandCursor = option;
             SchemaBase commandSchemaCursor = rootSchema;
 
-            foreach (var (token,schema) in tokenSchemaPairs)
+            foreach (var (token, schema) in tokenSchemaPairs)
             {
                 if (token is OptionToken optionToken && schema is OptionSchema optionSchema)
                 {
