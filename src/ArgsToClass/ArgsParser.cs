@@ -35,7 +35,7 @@ namespace ArgsToClass
 
                 if (argToken.IsOptionFormat)
                 {
-                    var options = GetOptionSchema(schema, argToken);
+                    var options = SelectOptionSchema(schema, argToken);
 
                     if (options.Length == 1)
                     {
@@ -87,7 +87,7 @@ namespace ArgsToClass
             return list;
         }
 
-        public static OptionSchema[] GetOptionSchema(SchemaBase schema, ArgToken argToken)
+        public static OptionSchema[] SelectOptionSchema(SchemaBase schema, ArgToken argToken)
         {
             var name = argToken.Name.Value.ToLower();
             
