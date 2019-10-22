@@ -26,7 +26,7 @@ namespace ArgsToClass
         /// </remarks>
         /// <param name="type"></param>
         /// <returns></returns>
-        private static IReadOnlyList<CommandSchema> GetCommandSchemata(Type type) =>
+        public static IReadOnlyList<CommandSchema> GetCommandSchemata(Type type) =>
             type.GetProperties()
                 .Where(prop => prop.CanWrite)
                 .Select(GetSchemaAttribute)

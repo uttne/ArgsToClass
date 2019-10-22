@@ -135,7 +135,8 @@ namespace ArgsToClass
                    && base.Equals(other) 
                    && ShortName == other.ShortName 
                    && string.Equals(LongName, other.LongName) 
-                   && string.Equals(Description, other.Description) 
+                   && string.Equals(Description, other.Description)
+                   && string.Equals(OneLineDescription, other.OneLineDescription)
                    && EqualityComparer<PropertyInfo>.Default.Equals(PropertyInfo, other.PropertyInfo) 
                    && IsSwitch == other.IsSwitch;
         }
@@ -148,6 +149,7 @@ namespace ArgsToClass
                 hashCode = (hashCode * 397) ^ ShortName.GetHashCode();
                 hashCode = (hashCode * 397) ^ (LongName != null ? LongName.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (OneLineDescription != null ? OneLineDescription.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (PropertyInfo != null ? PropertyInfo.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ IsSwitch.GetHashCode();
                 return hashCode;
@@ -190,6 +192,7 @@ namespace ArgsToClass
                    && base.Equals(other)
                    && string.Equals(Name, other.Name)
                    && string.Equals(Description, other.Description)
+                   && string.Equals(OneLineDescription, other.OneLineDescription)
                    && EqualityComparer<PropertyInfo>.Default.Equals(PropertyInfo, other.PropertyInfo);
         }
 
@@ -200,6 +203,7 @@ namespace ArgsToClass
                 int hashCode = base.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (OneLineDescription != null ? OneLineDescription.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (PropertyInfo != null ? PropertyInfo.GetHashCode() : 0);
                 return hashCode;
             }
