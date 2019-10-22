@@ -1,3 +1,4 @@
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -89,9 +90,44 @@ namespace ArgsToClass
 
     public sealed class RootSchema : SchemaBase
     {
-        public RootSchema(IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options) 
+        public string Description { get; }
+        public Type Type { get; }
+
+        public RootSchema(string description,Type type,IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options) 
             : base(commands, options)
         {
+            Description = description;
+            Type = type;
+        }
+
+        public static RootSchema Create(DescriptionAttribute descriptionAttribute, Type type, IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options)
+        {
+            var description = descriptionAttribute?.Description;
+            return new RootSchema(description, type, commands, options);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as RootSchema);
+        }
+
+        public bool Equals(RootSchema other)
+        {
+            return other != null
+                   && base.Equals(other)
+                   && string.Equals(Description, other.Description)
+                   && EqualityComparer<Type>.Default.Equals(Type, other.Type);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = base.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Type != null ? Type.GetHashCode() : 0);
+                return hashCode;
+            }
         }
     }
 

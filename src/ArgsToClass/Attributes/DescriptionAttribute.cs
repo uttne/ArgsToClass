@@ -2,7 +2,7 @@ using System;
 
 namespace ArgsToClass.Attributes
 {
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
     public class DescriptionAttribute : Attribute
     {
         public string Description { get; }

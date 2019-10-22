@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +9,7 @@ namespace ArgsToClass.Tests
 {
     public class SchemaParserTest
     {
+        [Description("Root description")]
         public class OptionRoot
         {
             public string Opt1 { get; set; }
@@ -52,19 +53,13 @@ namespace ArgsToClass.Tests
 
             var actual = parser.Parse();
 
-            Assert.NotNull(actual);
-
-            Assert.Equal(4, actual.Options.Count);
-            Assert.Equal(2, actual.Commands.Count);
-
-            Assert.Equal(1, actual.Commands[0].Options.Count);
-            Assert.Equal(0, actual.Commands[0].Commands.Count);
-
-            Assert.Equal(1, actual.Commands[1].Options.Count);
-            Assert.Equal(1, actual.Commands[1].Commands.Count);
-
-            Assert.Equal(1, actual.Commands[1].Commands[0].Options.Count);
-            Assert.Equal(0, actual.Commands[1].Commands[0].Commands.Count);
+            var type = typeof(OptionRoot);
+            var expected = new RootSchema("Root description",typeof(OptionRoot),
+                SchemaParser<OptionRoot>.GetCommandSchemata(type),
+                SchemaParser<OptionRoot>.GetOptionSchemata(type)
+                );
+            
+            Assert.Equal(expected, actual);
         }
 
         [Fact]
