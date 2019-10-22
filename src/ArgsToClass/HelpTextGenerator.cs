@@ -5,6 +5,10 @@ using System.Linq.Expressions;
 
 namespace ArgsToClass
 {
+    /// <summary>
+    /// Help text generator.
+    /// </summary>
+    /// <typeparam name="TOption"></typeparam>
     public class HelpTextGenerator<TOption>
     where TOption:class,new()
     {
@@ -19,9 +23,14 @@ namespace ArgsToClass
             _rootSchema = schemaParser.Parse();
         }
 
+        /// <summary>
+        /// Get help text for root option.
+        /// </summary>
+        /// <param name="argsData">Parse result</param>
+        /// <returns>Help text</returns>
         public string GetHelpText(IArgsData<TOption> argsData)
         {
-            var (schema,_) = argsData.GetCommand();
+            var schema = argsData.GetSchema();
 
             switch (schema)
             {
@@ -33,7 +42,29 @@ namespace ArgsToClass
                     return null;
             }
         }
-        
+
+        /// <summary>
+        /// Get command help text.
+        /// </summary>
+        /// <typeparam name="TCommand"></typeparam>
+        /// <param name="argsData">Parse result</param>
+        /// <param name="expression">Specifying command</param>
+        /// <returns>Help text</returns>
+        public string GetHelpText<TCommand>(IArgsData<TOption> argsData, Expression<Func<TOption, TCommand>> expression)
+        {
+            var schema = argsData.GetSchema(expression);
+
+            switch (schema)
+            {
+                case RootSchema rootSchema:
+                    return _helpTextFormatter.Format(rootSchema);
+                case CommandSchema commandSchema:
+                    return _helpTextFormatter.Format(commandSchema);
+                default:
+                    return null;
+            }
+        }
+
 
         public string GetDescription<T>(Expression<Func<TOption, T>> expression)
         {

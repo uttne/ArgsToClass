@@ -9,6 +9,7 @@ namespace ArgsToClass.Tests
 {
     public class SchemaParserTest
     {
+        [Description("Root description")]
         public class OptionRoot
         {
             public string Opt1 { get; set; }
@@ -18,10 +19,10 @@ namespace ArgsToClass.Tests
             [OptionIgnore]
             public string Opt4 { get; set; }
             [Option()]
-            [Description("Opt5 description","Opt5 one line description")]
+            [Attributes.Description("Opt5 description")]
             public Option1 Opt5 { get; set; }
             [Command()]
-            [Description("Com1 description","Com1 one line description")]
+            [Attributes.Description("Com1 description")]
             public Command1 Com1 { get; set; }
             [Command()]
             public Command2 Com2 { get; set; }
@@ -52,19 +53,13 @@ namespace ArgsToClass.Tests
 
             var actual = parser.Parse();
 
-            Assert.NotNull(actual);
-
-            Assert.Equal(4, actual.Options.Count);
-            Assert.Equal(2, actual.Commands.Count);
-
-            Assert.Equal(1, actual.Commands[0].Options.Count);
-            Assert.Equal(0, actual.Commands[0].Commands.Count);
-
-            Assert.Equal(1, actual.Commands[1].Options.Count);
-            Assert.Equal(1, actual.Commands[1].Commands.Count);
-
-            Assert.Equal(1, actual.Commands[1].Commands[0].Options.Count);
-            Assert.Equal(0, actual.Commands[1].Commands[0].Commands.Count);
+            var type = typeof(OptionRoot);
+            var expected = new RootSchema("Root description",typeof(OptionRoot),
+                SchemaParser<OptionRoot>.GetCommandSchemata(type),
+                SchemaParser<OptionRoot>.GetOptionSchemata(type)
+                );
+            
+            Assert.Equal(expected, actual);
         }
 
         [Fact]
@@ -74,10 +69,10 @@ namespace ArgsToClass.Tests
             var options = SchemaParser<OptionRoot>.GetOptionSchemata(type).ToArray();
 
             OptionSchema[] expected = {
-                new OptionSchema(default,"opt1",null,null,type.GetProperty("Opt1")),
-                new OptionSchema(default,"opt2",null,null,type.GetProperty("Opt2")),
-                new OptionSchema(default,"opt3",null,null,type.GetProperty("Opt3")),
-                new OptionSchema(default,"opt5","Opt5 description","Opt5 one line description",type.GetProperty("Opt5")),
+                new OptionSchema(default,"opt1",null,type.GetProperty("Opt1")),
+                new OptionSchema(default,"opt2",null,type.GetProperty("Opt2")),
+                new OptionSchema(default,"opt3",null,type.GetProperty("Opt3")),
+                new OptionSchema(default,"opt5","Opt5 description",type.GetProperty("Opt5")),
             };
             Assert.Equal(expected, options);
         }
@@ -89,20 +84,20 @@ namespace ArgsToClass.Tests
             var command = SchemaParser<OptionRoot>.GetCommandSchemata(type).ToArray();
 
             CommandSchema[] expected = {
-                new CommandSchema("com1","Com1 description","Com1 one line description",type.GetProperty(nameof(OptionRoot.Com1)),null,new []
+                new CommandSchema("com1","Com1 description",type.GetProperty(nameof(OptionRoot.Com1)),null,new []
                 {
-                    new OptionSchema(default,"opt1",null,null,typeof(Command1).GetProperty(nameof(Command1.Opt1))),
+                    new OptionSchema(default,"opt1",null,typeof(Command1).GetProperty(nameof(Command1.Opt1))),
                 }),
-                new CommandSchema("com2",null,null,type.GetProperty(nameof(OptionRoot.Com2)),new []
+                new CommandSchema("com2",null,type.GetProperty(nameof(OptionRoot.Com2)),new []
                     {
-                        new CommandSchema("com1",null,null,typeof(Command2).GetProperty(nameof(Command2.Com1)),null,new []
+                        new CommandSchema("com1",null,typeof(Command2).GetProperty(nameof(Command2.Com1)),null,new []
                         {
-                            new OptionSchema(default,"opt1",null,null,typeof(Command1).GetProperty(nameof(Command1.Opt1))),
+                            new OptionSchema(default,"opt1",null,typeof(Command1).GetProperty(nameof(Command1.Opt1))),
                         }),
                     },
                     new []
                     {
-                        new OptionSchema(default,"opt1",null,null,typeof(Command2).GetProperty(nameof(Command2.Opt1))),
+                        new OptionSchema(default,"opt1",null,typeof(Command2).GetProperty(nameof(Command2.Opt1))),
                     }),
             };
             Assert.Equal(expected, command);

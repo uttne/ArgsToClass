@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -11,14 +12,17 @@ namespace ArgsToClass
         private readonly HashSet<string> _hasExpressionTextHashSet;
         private readonly SchemaBase _commandSchema;
         private readonly object _command;
+        private readonly SchemaBase _rootSchema;
 
-        public ArgsData(TOption option, HashSet<string> hasExpressionTextHashSet, IReadOnlyList<string> extra,SchemaBase commandSchema,object command)
+        public ArgsData(TOption option, HashSet<string> hasExpressionTextHashSet, IReadOnlyList<string> extra,
+            SchemaBase commandSchema, object command, SchemaBase rootSchema)
         {
             Option = option ?? throw new ArgumentNullException(nameof(option));
 
             _hasExpressionTextHashSet = hasExpressionTextHashSet ?? throw new ArgumentNullException(nameof(hasExpressionTextHashSet));
             _commandSchema = commandSchema;
             _command = command;
+            _rootSchema = rootSchema;
 
             Extra = extra ?? new string[0];
         }
@@ -59,10 +63,56 @@ namespace ArgsToClass
 
             return _hasExpressionTextHashSet.Contains(expressionText);
         }
-
-        public (SchemaBase schema, object command) GetCommand()
+        
+        public SchemaBase GetSchema<T>(Expression<Func<TOption, T>> propExpression = null)
         {
-            return (_commandSchema, _command);
+            if (propExpression == null)
+                return _rootSchema;
+
+            var expressionText = ExpressionToString(propExpression);
+
+            var propertyNames = expressionText.Split('.').Skip(1).ToArray();
+
+
+            SchemaBase GetSchemaBase(SchemaBase schemaBase, string propertyName)
+            {
+                if (schemaBase == null)
+                    return null;
+
+                foreach (var commandSchema in schemaBase.Commands)
+                {
+                    if (commandSchema.PropertyInfo.Name == propertyName)
+                    {
+                        return commandSchema;
+                    }
+                }
+
+                foreach (var optionSchema in schemaBase.Options)
+                {
+                    if (optionSchema.PropertyInfo.Name == propertyName)
+                    {
+                        return optionSchema;
+                    }
+                }
+
+                return null;
+            }
+            
+            var schema = _rootSchema;
+            
+            foreach (var propertyName in propertyNames)
+            {
+                schema = GetSchemaBase(schema, propertyName);
+                if(schema == null)
+                    break;
+            }
+
+            return schema;
+        }
+
+        public SchemaBase GetSchema()
+        {
+            return _rootSchema;
         }
     }
 }

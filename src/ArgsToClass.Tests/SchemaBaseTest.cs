@@ -19,7 +19,7 @@ namespace ArgsToClass.Tests
         public List<OptionSchema> Options { get; set; }
         public CommandSchema Build()
         {
-            return new CommandSchema(Name, Description, OneLineDescription, PropertyInfo, Commands, Options);
+            return new CommandSchema(Name, Description, PropertyInfo, Commands, Options);
         }
 
         public string OneLineDescription { get; set; }
@@ -63,7 +63,7 @@ namespace ArgsToClass.Tests
         public PropertyInfo PropertyInfo { get; set; }
         public OptionSchema Build()
         {
-            return new OptionSchema(ShortName, LongName, Description, OneLineDescription, PropertyInfo);
+            return new OptionSchema(ShortName, LongName, Description, PropertyInfo);
         }
 
         public string OneLineDescription { get; set; }

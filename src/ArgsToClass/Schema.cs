@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using ArgsToClass.Attributes;
@@ -89,9 +90,44 @@ namespace ArgsToClass
 
     public sealed class RootSchema : SchemaBase
     {
-        public RootSchema(IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options) 
+        public string Description { get; }
+        public Type Type { get; }
+
+        public RootSchema(string description,Type type,IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options) 
             : base(commands, options)
         {
+            Description = description;
+            Type = type;
+        }
+
+        public static RootSchema Create(DescriptionAttribute descriptionAttribute, Type type, IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options)
+        {
+            var description = descriptionAttribute?.Description;
+            return new RootSchema(description, type, commands, options);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as RootSchema);
+        }
+
+        public bool Equals(RootSchema other)
+        {
+            return other != null
+                   && base.Equals(other)
+                   && string.Equals(Description, other.Description)
+                   && EqualityComparer<Type>.Default.Equals(Type, other.Type);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = base.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Type != null ? Type.GetHashCode() : 0);
+                return hashCode;
+            }
         }
     }
 
@@ -100,17 +136,15 @@ namespace ArgsToClass
         public ImmVal<char> ShortName { get; }
         public string LongName { get; }
         public string Description { get; }
-        public string OneLineDescription { get; }
         public PropertyInfo PropertyInfo { get; }
         public bool IsSwitch { get; }
 
-        public OptionSchema(ImmVal<char> shortName,string longName,string description,string oneLineDescription, PropertyInfo propertyInfo)
+        public OptionSchema(ImmVal<char> shortName,string longName,string description, PropertyInfo propertyInfo)
             : base(new CommandSchema[0], new OptionSchema[0])
         {
             ShortName = shortName;
             LongName = longName;
             Description = description;
-            OneLineDescription = oneLineDescription;
             PropertyInfo = propertyInfo;
             IsSwitch = propertyInfo?.PropertyType == typeof(bool);
         }
@@ -120,8 +154,7 @@ namespace ArgsToClass
             var shortName = optionAttribute != null && optionAttribute.ShortName != '\0' ? ImmVal.Value(optionAttribute.ShortName) : default;
             var longName = optionAttribute?.LongName ?? ConvertOptionName(propertyInfo.Name);
             var description = descriptionAttribute?.Description;
-            var oneLineDescription = descriptionAttribute?.OneLineDescription;
-            return new OptionSchema(shortName, longName, description, oneLineDescription, propertyInfo);
+            return new OptionSchema(shortName, longName, description, propertyInfo);
         }
 
         public override bool Equals(object obj)
@@ -136,7 +169,6 @@ namespace ArgsToClass
                    && ShortName == other.ShortName 
                    && string.Equals(LongName, other.LongName) 
                    && string.Equals(Description, other.Description)
-                   && string.Equals(OneLineDescription, other.OneLineDescription)
                    && EqualityComparer<PropertyInfo>.Default.Equals(PropertyInfo, other.PropertyInfo) 
                    && IsSwitch == other.IsSwitch;
         }
@@ -149,7 +181,6 @@ namespace ArgsToClass
                 hashCode = (hashCode * 397) ^ ShortName.GetHashCode();
                 hashCode = (hashCode * 397) ^ (LongName != null ? LongName.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (OneLineDescription != null ? OneLineDescription.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (PropertyInfo != null ? PropertyInfo.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ IsSwitch.GetHashCode();
                 return hashCode;
@@ -161,15 +192,13 @@ namespace ArgsToClass
     {
         public string Name { get; }
         public string Description { get; }
-        public string OneLineDescription { get; }
         public PropertyInfo PropertyInfo { get; }
 
-        public CommandSchema(string name, string description,string oneLineDescription,PropertyInfo propertyInfo,IReadOnlyList < CommandSchema> commands, IReadOnlyList<OptionSchema> options)
+        public CommandSchema(string name, string description,PropertyInfo propertyInfo,IReadOnlyList < CommandSchema> commands, IReadOnlyList<OptionSchema> options)
             : base(commands, options)
         {
             Name = name;
             Description = description;
-            OneLineDescription = oneLineDescription;
             PropertyInfo = propertyInfo;
         }
 
@@ -177,8 +206,7 @@ namespace ArgsToClass
         {
             var name = commandAttribute?.Name ?? ConvertOptionName(propertyInfo.Name);
             var description = descriptionAttribute?.Description;
-            var oneLineDescription = descriptionAttribute?.OneLineDescription;
-            return new CommandSchema(name, description, oneLineDescription, propertyInfo, commands, options);
+            return new CommandSchema(name, description, propertyInfo, commands, options);
         }
 
         public override bool Equals(object obj)
@@ -192,7 +220,6 @@ namespace ArgsToClass
                    && base.Equals(other)
                    && string.Equals(Name, other.Name)
                    && string.Equals(Description, other.Description)
-                   && string.Equals(OneLineDescription, other.OneLineDescription)
                    && EqualityComparer<PropertyInfo>.Default.Equals(PropertyInfo, other.PropertyInfo);
         }
 
@@ -203,7 +230,6 @@ namespace ArgsToClass
                 int hashCode = base.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (OneLineDescription != null ? OneLineDescription.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (PropertyInfo != null ? PropertyInfo.GetHashCode() : 0);
                 return hashCode;
             }

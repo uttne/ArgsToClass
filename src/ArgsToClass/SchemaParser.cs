@@ -15,7 +15,11 @@ namespace ArgsToClass
         }
 
         public RootSchema Parse() =>
-            new RootSchema(GetCommandSchemata(typeof(T)), GetOptionSchemata(typeof(T)));
+            RootSchema.Create(
+                Attribute.GetCustomAttributes(typeof(T)).OfType<DescriptionAttribute>().FirstOrDefault(),
+                typeof(T), GetCommandSchemata(typeof(T)),
+                GetOptionSchemata(typeof(T))
+            );
 
         /// <summary>
         /// 
