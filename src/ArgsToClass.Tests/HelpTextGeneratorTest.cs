@@ -12,20 +12,20 @@ namespace ArgsToClass.Tests
 
         public class Option
         {
-            [Option(description:"Show help.",shortName:'h')]
+            [Option(shortName:'h')]
             public bool Help { get; set; }
-            [Option(description:"Target path.")]
+            [Option()]
             public string Path { get; set; }
 
-            [Command(description:"Run command.")]
+            [Command()]
             public Run Run { get; set; }
         }
 
         public class Run
         {
-            [Option(description:"Show help.",shortName:'h')]
+            [Option(shortName:'h')]
             public bool Help { get; set; }
-            [Option(description:"Output dir path.")]
+            [Option()]
             public string Dest { get; set; }
         }
 

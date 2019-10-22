@@ -78,7 +78,7 @@ namespace ArgsToClass.Tests
 
         public class Option
         {
-            [Option(shortName: 'a', longName: "Alpha", description: "description", isDefault: true)]
+            [Option(shortName: 'a', longName: "Alpha")]
             public string Alpha { get; set; }
 
             [Option(shortName: 'b', longName: "Beta")]
@@ -97,7 +97,7 @@ namespace ArgsToClass.Tests
 
             public string ZetaBeta { get; set; }
 
-            [Command(name: "Eta",description:"description")]
+            [Command(name: "Eta")]
             public Eta Eta { get; set; }
 
             [Command(name: "Theta")]
@@ -131,19 +131,19 @@ namespace ArgsToClass.Tests
 
         public class ParseToTokensTestOption
         {
-            [Option(description:"help show",longName:"help",shortName:'h')]
+            [Option(longName:"help",shortName:'h')]
             public bool Help { get; set; }
 
-            [Option(description: "alpha switch", longName: "alpha", shortName: 'a')]
+            [Option(longName: "alpha", shortName: 'a')]
             public bool Alpha { get; set; }
 
-            [Option(description: "beta switch", longName: "beta", shortName: 'b')]
+            [Option(longName: "beta", shortName: 'b')]
             public bool Beta { get; set; }
             
-            [Option(description: "gamma switch", longName: "gamma", shortName: 'g')]
+            [Option(longName: "gamma", shortName: 'g')]
             public bool Gamma { get; set; }
 
-            [Option(description: "ab switch", longName: "ab")]
+            [Option(longName: "ab")]
             public bool Ab { get; set; }
         }
 
@@ -158,7 +158,7 @@ namespace ArgsToClass.Tests
             var actual = ArgsParser.ParseToTokenSchemaPairs(rootSchema, args);
 
             TokenBase[] expected = {
-                new OptionToken('h',"help","help show",true,"true"),
+                new OptionToken('h',"help",null,true,"true"),
             };
             
             Assert.Equal(expected, actual.Select(x=>x.Item1).ToArray());
