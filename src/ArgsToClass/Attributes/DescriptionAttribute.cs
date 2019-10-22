@@ -6,12 +6,10 @@ namespace ArgsToClass.Attributes
     public class DescriptionAttribute : Attribute
     {
         public string Description { get; }
-        public string OneLineDescription { get; }
 
-        public DescriptionAttribute(string description,string oneLineDescription=null)
+        public DescriptionAttribute(string description)
         {
             Description = description;
-            OneLineDescription = oneLineDescription;
         }
     }
 }
