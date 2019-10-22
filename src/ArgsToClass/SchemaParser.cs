@@ -49,17 +49,19 @@ namespace ArgsToClass
                 .Select(GetOptionSchema)
                 .ToArray();
 
-        public static CommandSchema GetCommandSchema((SchemaAttribute schemaAtt, PropertyInfo propInfo) set) =>
+        public static CommandSchema GetCommandSchema(
+            (SchemaAttribute schemaAtt, DescriptionAttribute description, PropertyInfo propInfo) set) =>
             CommandSchema.Create(
-                set.schemaAtt as CommandAttribute, set.propInfo,
+                set.schemaAtt as CommandAttribute, set.description, set.propInfo,
                 GetCommandSchemata(set.propInfo.PropertyType),
                 GetOptionSchemata(set.propInfo.PropertyType)
-                );
+            );
 
-        public static OptionSchema GetOptionSchema((SchemaAttribute schemaAtt, PropertyInfo propInfo) set) =>
-            OptionSchema.Create(set.schemaAtt as OptionAttribute,set.propInfo);
+        public static OptionSchema GetOptionSchema(
+            (SchemaAttribute schemaAtt, DescriptionAttribute description, PropertyInfo propInfo) set) =>
+            OptionSchema.Create(set.schemaAtt as OptionAttribute, set.description, set.propInfo);
 
-        public static (SchemaAttribute schema, PropertyInfo propInfo) GetSchemaAttribute(PropertyInfo propInfo) =>
+        public static (SchemaAttribute schema, DescriptionAttribute description, PropertyInfo propInfo) GetSchemaAttribute(PropertyInfo propInfo) =>
             (
                 Attribute.GetCustomAttributes(propInfo)
                     .OfType<SchemaAttribute>()
@@ -68,6 +70,10 @@ namespace ArgsToClass
                         att is CommandAttribute ? 1 :
                         att is OptionAttribute ? 2 : int.MaxValue)
                     .FirstOrDefault(),
+                Attribute.GetCustomAttributes(propInfo)
+                    .OfType<DescriptionAttribute>()
+                    .FirstOrDefault()
+                ,
                 propInfo
             );
 
@@ -168,25 +174,28 @@ namespace ArgsToClass
         public ImmVal<char> ShortName { get; }
         public string LongName { get; }
         public string Description { get; }
+        public string OneLineDescription { get; }
         public PropertyInfo PropertyInfo { get; }
         public bool IsSwitch { get; }
 
-        public OptionSchema(ImmVal<char> shortName,string longName,string description, PropertyInfo propertyInfo)
+        public OptionSchema(ImmVal<char> shortName,string longName,string description,string oneLineDescription, PropertyInfo propertyInfo)
             : base(new CommandSchema[0], new OptionSchema[0])
         {
             ShortName = shortName;
             LongName = longName;
             Description = description;
+            OneLineDescription = oneLineDescription;
             PropertyInfo = propertyInfo;
             IsSwitch = propertyInfo?.PropertyType == typeof(bool);
         }
 
-        public static OptionSchema Create(OptionAttribute optionAttribute,PropertyInfo propertyInfo)
+        public static OptionSchema Create(OptionAttribute optionAttribute,DescriptionAttribute descriptionAttribute,PropertyInfo propertyInfo)
         {
             var shortName = optionAttribute != null && optionAttribute.ShortName != '\0' ? ImmVal.Value(optionAttribute.ShortName) : default;
             var longName = optionAttribute?.LongName ?? ConvertOptionName(propertyInfo.Name);
-            var description = optionAttribute?.Description;
-            return new OptionSchema(shortName, longName, description, propertyInfo);
+            var description = descriptionAttribute?.Description;
+            var oneLineDescription = descriptionAttribute?.OneLineDescription;
+            return new OptionSchema(shortName, longName, description, oneLineDescription, propertyInfo);
         }
 
         public override bool Equals(object obj)
@@ -224,21 +233,24 @@ namespace ArgsToClass
     {
         public string Name { get; }
         public string Description { get; }
+        public string OneLineDescription { get; }
         public PropertyInfo PropertyInfo { get; }
 
-        public CommandSchema(string name, string description,PropertyInfo propertyInfo,IReadOnlyList < CommandSchema> commands, IReadOnlyList<OptionSchema> options)
+        public CommandSchema(string name, string description,string oneLineDescription,PropertyInfo propertyInfo,IReadOnlyList < CommandSchema> commands, IReadOnlyList<OptionSchema> options)
             : base(commands, options)
         {
             Name = name;
             Description = description;
+            OneLineDescription = oneLineDescription;
             PropertyInfo = propertyInfo;
         }
 
-        public static CommandSchema Create(CommandAttribute commandAttribute,PropertyInfo propertyInfo , IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options)
+        public static CommandSchema Create(CommandAttribute commandAttribute,DescriptionAttribute descriptionAttribute,PropertyInfo propertyInfo , IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options)
         {
             var name = commandAttribute?.Name ?? ConvertOptionName(propertyInfo.Name);
-            var description = commandAttribute?.Description;
-            return new CommandSchema(name, description, propertyInfo, commands, options);
+            var description = descriptionAttribute?.Description;
+            var oneLineDescription = descriptionAttribute?.OneLineDescription;
+            return new CommandSchema(name, description, oneLineDescription, propertyInfo, commands, options);
         }
 
         public override bool Equals(object obj)
