@@ -45,8 +45,8 @@ namespace ArgsToClass.Tests
             SchemaBase schema = rootSchema;
             var option = new Option();
             object command = option;
-            argsDataMock.Setup(x => x.GetCommand())
-                .Returns(()=>(schema, command));
+            argsDataMock.Setup(x => x.GetSchema())
+                .Returns(()=>schema);
 
             var argsData = argsDataMock.Object;
             
@@ -66,6 +66,19 @@ namespace ArgsToClass.Tests
 
                 _testOutputHelper.WriteLine(actual);
             }
+        }
+
+        [Fact]
+        public void GetHelpText_success_2()
+        {
+            var helpText = new HelpTextGenerator<Option>();
+
+
+            var argsData = new ArgsParser<Option>().Parse(new string[0]);
+            var text = helpText.GetHelpText(argsData, x => x.Run);
+
+            Assert.NotNull(text);
+            _testOutputHelper.WriteLine(text);
         }
     }
 }

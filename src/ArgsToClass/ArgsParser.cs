@@ -174,7 +174,7 @@ namespace ArgsToClass
             }
 
 
-            return new ArgsData<TOption>(option, hasExpressionTextHashSet, extra, commandSchemaCursor, commandCursor);
+            return new ArgsData<TOption>(option, hasExpressionTextHashSet, extra, commandSchemaCursor, commandCursor, rootSchema);
         }
 
         private static TOption ActivateOption()

@@ -39,7 +39,7 @@ namespace ArgsToClass
 
                 var commandTextMaxLength = rootSchema.Commands.Max(x => x.Name.Length);
                 var commandFormat = $" {{0,-{commandTextMaxLength + 2}}}{{1}}";
-                foreach (var (name, description) in rootSchema.Commands.Select(x => (x.Name, x.Description)))
+                foreach (var (name, description) in rootSchema.Commands.Select(x => (x.Name, x.Description ?? "")))
                 {
                     var descriptionLines = description.Replace("\r", "").Split('\n');
                     foreach (var (line, index) in descriptionLines.Select((line, index) => (line, index)))
@@ -94,7 +94,7 @@ namespace ArgsToClass
                     ? $"-{optionSchema.ShortName.Value}|--{optionSchema.LongName}"
                     : $"--{optionSchema.LongName}")
                 + (optionSchema.IsSwitch ? "" : $" <{optionSchema.LongName.ToUpperInvariant()}>"),
-                optionSchema.Description);
+                optionSchema.Description ?? "");
         }
     }
 }
