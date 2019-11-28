@@ -6,12 +6,12 @@ namespace ArgsToClass
 {
     public class ArgsParser
     {
-        public static IReadOnlyList<ArgToken> ParseToArgTokens(string[] args) =>
+        internal static IReadOnlyList<ArgToken> ParseToArgTokens(string[] args) =>
             args.Select(ArgToken.Create)
                 .ToArray();
 
 
-        public static IReadOnlyList<(TokenBase, SchemaBase)> ParseToTokenSchemaPairs(SchemaBase schema, string[] args)
+        internal static IReadOnlyList<(TokenBase, SchemaBase)> ParseToTokenSchemaPairs(SchemaBase schema, string[] args)
         {
             if (schema == null)
                 throw new ArgumentNullException(nameof(schema));
@@ -87,7 +87,7 @@ namespace ArgsToClass
             return list;
         }
 
-        public static OptionSchema[] SelectOptionSchema(SchemaBase schema, ArgToken argToken)
+        internal static OptionSchema[] SelectOptionSchema(SchemaBase schema, ArgToken argToken)
         {
             var name = argToken.Name.Value.ToLower();
 
@@ -110,7 +110,7 @@ namespace ArgsToClass
         }
     }
 
-    public partial class ArgsParser<TOption> : ArgsParser
+    public class ArgsParser<TOption> : ArgsParser
         where TOption : class, new()
     {
         public ArgsParser()

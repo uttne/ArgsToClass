@@ -2,7 +2,7 @@
 
 namespace ArgsToClass
 {
-    public class ArgToken
+    internal class ArgToken
     {
         public ArgToken(string arg, bool isOptionFormat,
             ImmVal<string> prefix = default,
