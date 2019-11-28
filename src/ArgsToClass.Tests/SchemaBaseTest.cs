@@ -9,27 +9,28 @@ using Xunit;
 
 namespace ArgsToClass.Tests
 {
-    class CommandSchemaBuilder : IEnumerable<SchemaBase>
+    class SubCommandSchemaBuilder : IEnumerable<SchemaBase>
     {
         public string Name { get; set; }
         public string Description { get; set; }
         public PropertyInfo PropertyInfo { get; set; }
-        public List<CommandSchema> Commands { get; set; }
+        public IList<SubCommandSchema> Commands { get; set; }
 
-        public List<OptionSchema> Options { get; set; }
-        public CommandSchema Build()
+        public IList<OptionSchema> Options { get; set; }
+        public Type Type { get; set; }
+        public SubCommandSchema Build()
         {
-            return new CommandSchema(Name, Description, PropertyInfo, Commands, Options);
+            return new SubCommandSchema(Name, Description, Type ?? PropertyInfo?.PropertyType, PropertyInfo, Commands?.ToArray(), Options?.ToArray());
         }
 
         public string OneLineDescription { get; set; }
 
         public void Add(SchemaBase schema)
         {
-            if (schema is CommandSchema command)
+            if (schema is SubCommandSchema command)
             {
                 if(Commands == null)
-                    Commands = new List<CommandSchema>();
+                    Commands = new List<SubCommandSchema>();
                 Commands.Add(command);
             }
             else if (schema is OptionSchema option)
@@ -44,7 +45,7 @@ namespace ArgsToClass.Tests
         {
             return (Options ?? new List<OptionSchema>())
                 .OfType<SchemaBase>()
-                .Concat(Commands ?? new List<CommandSchema>())
+                .Concat(Commands ?? new List<SubCommandSchema>())
                 .ToList()
                 .GetEnumerator();
         }
@@ -80,45 +81,45 @@ namespace ArgsToClass.Tests
         [Fact]
         public void GetContainAllCommands_test()
         {
-            var command = new CommandSchemaBuilder()
+            var command = new SubCommandSchemaBuilder()
             {
                 Name = "0",
-                Commands = new List<CommandSchema>() { 
-                    new CommandSchemaBuilder()
+                Commands = new List<SubCommandSchema>() { 
+                    new SubCommandSchemaBuilder()
                     {
                         Name = "1",
-                        Commands = new List<CommandSchema>()
+                        Commands = new List<SubCommandSchema>()
                         {
-                            new CommandSchemaBuilder()
+                            new SubCommandSchemaBuilder()
                             {
                                 Name = "2",
-                                Commands = new List<CommandSchema>()
+                                Commands = new List<SubCommandSchema>()
                                 {
-                                    new CommandSchemaBuilder()
+                                    new SubCommandSchemaBuilder()
                                     {
                                         Name = "3",
-                                        Commands = new List<CommandSchema>()
+                                        Commands = new List<SubCommandSchema>()
                                     }.Build(),
-                                    new CommandSchemaBuilder()
+                                    new SubCommandSchemaBuilder()
                                     {
                                         Name = "4",
                                     }.Build(),
                                     null
                                 }
                             }.Build(),
-                            new CommandSchemaBuilder()
+                            new SubCommandSchemaBuilder()
                             {
                                 Name = "5",
                             }.Build(),
                             null
                         }
                     }.Build(),
-                    new CommandSchemaBuilder()
+                    new SubCommandSchemaBuilder()
                     {
                         Name = "6",
-                        Commands = new List<CommandSchema>()
+                        Commands = new List<SubCommandSchema>()
                     }.Build(),
-                    new CommandSchemaBuilder()
+                    new SubCommandSchemaBuilder()
                     {
                         Name = "7",
                     }.Build(),
@@ -126,9 +127,9 @@ namespace ArgsToClass.Tests
                     ,
                     }
             }.Build();
-            var actual = RootSchema.GetContainAllCommands(command);
+            var actual = CommandSchema.GetContainAllCommands(command);
 
-            var expected = new List<CommandSchema>()
+            var expected = new List<SubCommandSchema>()
             {
                 command.Commands[0],
                 command.Commands[0].Commands[0],
@@ -139,7 +140,7 @@ namespace ArgsToClass.Tests
                 command.Commands[2],
             };
 
-            var commandHashSet = new HashSet<CommandSchema>(expected);
+            var commandHashSet = new HashSet<SubCommandSchema>(expected);
 
             foreach (var commandSchema in actual)
             {

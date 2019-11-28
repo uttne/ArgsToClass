@@ -117,16 +117,16 @@ namespace ArgsToClass
         {
             var schemaParser = new SchemaParser<TOption>();
 
-            _rootSchema = schemaParser.Parse();
+            _commandSchema = schemaParser.Parse();
         }
 
 
-        private readonly RootSchema _rootSchema;
+        private readonly CommandSchema _commandSchema;
 
 
         public IArgsData<TOption> Parse(string[] args)
         {
-            var rootSchema = _rootSchema;
+            var rootSchema = _commandSchema;
 
             var tokenSchemaPairs = ParseToTokenSchemaPairs(rootSchema, args);
 
@@ -155,7 +155,7 @@ namespace ArgsToClass
 
                     hasExpressionTextHashSet.Add(commandExpressionName + "." + optionSchema.PropertyInfo.Name);
                 }
-                else if (token is CommandToken commandToken && schema is CommandSchema commandSchema)
+                else if (token is CommandToken commandToken && schema is SubCommandSchema commandSchema)
                 {
                     var command = Activator.CreateInstance(commandSchema.PropertyInfo.PropertyType);
 

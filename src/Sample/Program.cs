@@ -5,9 +5,9 @@ using ArgsToClass.Exceptions;
 
 namespace Sample
 {
-    [Description(@"Sample option description.
+    [Description(@"Sample main command description.
 More description.")]
-    public class Option
+    public class MainCommand
     {
         public bool Help { get; set; }
 
@@ -27,9 +27,9 @@ More description.")]
         {
             // args == new string[]{"--help", "-n", "John", "--repeat", "1"};
 
-            var parser = new ArgsParser<Option>();
+            var parser = new ArgsParser<MainCommand>();
             
-            IArgsData<Option> data;
+            IArgsData<MainCommand> data;
             try
             {
                 // This parses command line arguments and maps them to classes.
@@ -41,21 +41,21 @@ More description.")]
                 return;
             }
 
-            // data.Option.Help   == false
-            // data.Option.Name   == "John"
-            // data.Option.Repeat == 1
+            // data.MainCommand.Help   == false
+            // data.MainCommand.Name   == "John"
+            // data.MainCommand.Repeat == 1
 
-            if (data.Option.Help)
+            if (data.MainCommand.Help)
             {
-                var helpTextGen = new HelpTextGenerator<Option>();
+                var helpTextGen = new HelpTextGenerator<MainCommand>();
                 var helpText = helpTextGen.GetHelpText(data);
                 Console.WriteLine(helpText);
             }
             else
             {
-                for (var i = 0; i < data.Option.Repeat; ++i)
+                for (var i = 0; i < data.MainCommand.Repeat; ++i)
                 {
-                    Console.WriteLine($"Hi! {data.Option.Name}!");
+                    Console.WriteLine($"Hi! {data.MainCommand.Name}!");
                 }
             }
 

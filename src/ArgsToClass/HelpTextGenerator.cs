@@ -13,14 +13,14 @@ namespace ArgsToClass
     where TOption:class,new()
     {
         private readonly IHelpTextFormatter _helpTextFormatter;
-        private readonly RootSchema _rootSchema;
+        private readonly CommandSchema _commandSchema;
 
         public HelpTextGenerator(IHelpTextFormatter helpTextFormatter = null)
         {
             _helpTextFormatter = helpTextFormatter ?? new DefaultHelpTextFormatter();
             var schemaParser = new SchemaParser<TOption>();
 
-            _rootSchema = schemaParser.Parse();
+            _commandSchema = schemaParser.Parse();
         }
 
         /// <summary>
@@ -34,10 +34,10 @@ namespace ArgsToClass
 
             switch (schema)
             {
-                case RootSchema rootSchema:
-                    return _helpTextFormatter.Format(rootSchema);
-                case CommandSchema commandSchema:
+                case SubCommandSchema commandSchema:
                     return _helpTextFormatter.Format(commandSchema);
+                case CommandSchema rootSchema:
+                    return _helpTextFormatter.Format(rootSchema);
                 default:
                     return null;
             }
@@ -56,10 +56,10 @@ namespace ArgsToClass
 
             switch (schema)
             {
-                case RootSchema rootSchema:
-                    return _helpTextFormatter.Format(rootSchema);
-                case CommandSchema commandSchema:
+                case SubCommandSchema commandSchema:
                     return _helpTextFormatter.Format(commandSchema);
+                case CommandSchema rootSchema:
+                    return _helpTextFormatter.Format(rootSchema);
                 default:
                     return null;
             }
@@ -87,7 +87,7 @@ namespace ArgsToClass
                 list.Insert(0, name);
             }
 
-            SchemaBase schema = _rootSchema;
+            SchemaBase schema = _commandSchema;
             foreach (var name in list)
             {
                 var command = schema.Commands.FirstOrDefault(x => x.PropertyInfo.Name == name);
@@ -107,7 +107,7 @@ namespace ArgsToClass
 
             switch (schema)
             {
-                case CommandSchema commandSchema:
+                case SubCommandSchema commandSchema:
                     return commandSchema.Description;
                 case OptionSchema optionSchema:
                     return optionSchema.Description;

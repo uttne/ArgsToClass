@@ -10,22 +10,22 @@ namespace ArgsToClass.Tests
         [Fact]
         public void EqualsTest()
         {
-            var commands = new CommandSchema[2];
+            var commands = new SubCommandSchema[2];
 
             for (int i = 0; i < commands.Length; ++i)
             {
-                commands[i] = new CommandSchemaBuilder()
+                commands[i] = new SubCommandSchemaBuilder()
                 {
-                    Commands = new List<CommandSchema>()
+                    Commands = new List<SubCommandSchema>()
                     {
-                        new CommandSchemaBuilder()
+                        new SubCommandSchemaBuilder()
                         {
                             Name = "command1",
                             Description = "description1",
-                            PropertyInfo = typeof(CommandSchema).GetProperty(nameof(CommandSchema.PropertyInfo)),
-                            Commands = new List<CommandSchema>()
+                            PropertyInfo = typeof(SubCommandSchema).GetProperty(nameof(SubCommandSchema.PropertyInfo)),
+                            Commands = new List<SubCommandSchema>()
                             {
-                                new CommandSchemaBuilder().Build(),
+                                new SubCommandSchemaBuilder().Build(),
                                 null,
                             },
                             Options = new List<OptionSchema>()
@@ -34,14 +34,14 @@ namespace ArgsToClass.Tests
                                 null,
                             }
                         }.Build(),
-                        new CommandSchemaBuilder()
+                        new SubCommandSchemaBuilder()
                         {
                             Name = "command2",
                             Description = "description2",
-                            PropertyInfo = typeof(CommandSchema).GetProperty(nameof(CommandSchema.PropertyInfo)),
-                            Commands = new List<CommandSchema>()
+                            PropertyInfo = typeof(SubCommandSchema).GetProperty(nameof(SubCommandSchema.PropertyInfo)),
+                            Commands = new List<SubCommandSchema>()
                             {
-                                new CommandSchemaBuilder().Build(),
+                                new SubCommandSchemaBuilder().Build(),
                                 null,
                             },
                             Options = new List<OptionSchema>()
@@ -50,7 +50,7 @@ namespace ArgsToClass.Tests
                                 null,
                             }
                         }.Build(),
-                        new CommandSchemaBuilder().Build(),
+                        new SubCommandSchemaBuilder().Build(),
                         null,
                     },
                     Options = new List<OptionSchema>()

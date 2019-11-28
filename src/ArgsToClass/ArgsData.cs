@@ -17,7 +17,7 @@ namespace ArgsToClass
         public ArgsData(TOption option, HashSet<string> hasExpressionTextHashSet, IReadOnlyList<string> extra,
             SchemaBase commandSchema, object command, SchemaBase rootSchema)
         {
-            Option = option ?? throw new ArgumentNullException(nameof(option));
+            MainCommand = option ?? throw new ArgumentNullException(nameof(option));
 
             _hasExpressionTextHashSet = hasExpressionTextHashSet ?? throw new ArgumentNullException(nameof(hasExpressionTextHashSet));
             _commandSchema = commandSchema;
@@ -27,7 +27,8 @@ namespace ArgsToClass
             Extra = extra ?? new string[0];
         }
 
-        public TOption Option { get; }
+        public TOption MainCommand { get; }
+        public object Command { get{throw new NotImplementedException();} }
         public IReadOnlyList<string> Extra { get; }
 
         public static string ExpressionToString<T>(Expression<Func<TOption, T>> propExpression)

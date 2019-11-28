@@ -9,13 +9,13 @@ namespace ArgsToClass
 {
     internal class SchemaParser<T>
     {
-        public SchemaBase GetSchema<TResult>(RootSchema rootSchema ,Expression<Func<T,TResult>> expression)
+        public SchemaBase GetSchema<TResult>(CommandSchema commandSchema ,Expression<Func<T,TResult>> expression)
         {
             throw new NotImplementedException();
         }
 
-        public RootSchema Parse() =>
-            RootSchema.Create(
+        public CommandSchema Parse() =>
+            CommandSchema.Create(
                 Attribute.GetCustomAttributes(typeof(T)).OfType<DescriptionAttribute>().FirstOrDefault(),
                 typeof(T), GetCommandSchemata(typeof(T)),
                 GetOptionSchemata(typeof(T))
@@ -30,11 +30,11 @@ namespace ArgsToClass
         /// </remarks>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static IReadOnlyList<CommandSchema> GetCommandSchemata(Type type) =>
+        public static IReadOnlyList<SubCommandSchema> GetCommandSchemata(Type type) =>
             type.GetProperties()
                 .Where(prop => prop.CanWrite)
                 .Select(GetSchemaAttribute)
-                .Where(x => x.schema is CommandAttribute)
+                .Where(x => x.schema is SubCommandAttribute)
                 .Select(x=>x.propInfo.PropertyType.IsClass ? x : throw new InvalidOperationException($"'{x.propInfo.PropertyType.FullName}' is not class."))
                 .Select(GetCommandSchema)
                 .ToArray();
@@ -53,10 +53,10 @@ namespace ArgsToClass
                 .Select(GetOptionSchema)
                 .ToArray();
 
-        public static CommandSchema GetCommandSchema(
+        public static SubCommandSchema GetCommandSchema(
             (SchemaAttribute schemaAtt, DescriptionAttribute description, PropertyInfo propInfo) set) =>
-            CommandSchema.Create(
-                set.schemaAtt as CommandAttribute, set.description, set.propInfo,
+            SubCommandSchema.Create(
+                set.schemaAtt as SubCommandAttribute, set.description, set.propInfo,
                 GetCommandSchemata(set.propInfo.PropertyType),
                 GetOptionSchemata(set.propInfo.PropertyType)
             );
@@ -71,7 +71,7 @@ namespace ArgsToClass
                 .OfType<SchemaAttribute>()
                 .OrderBy(att =>
                     att is OptionIgnoreAttribute ? 0 :
-                    att is CommandAttribute ? 1 :
+                    att is SubCommandAttribute ? 1 :
                     att is OptionAttribute ? 2 : int.MaxValue)
                 .FirstOrDefault(),
             Attribute.GetCustomAttributes(propInfo)

@@ -1,10 +1,10 @@
 ﻿namespace ArgsToClass.Attributes
 {
-    public class CommandAttribute: SchemaAttribute
+    public class SubCommandAttribute: SchemaAttribute
     {
         public string Name { get; }
 
-        public CommandAttribute(string name = null)
+        public SubCommandAttribute(string name = null)
         {
             Name = name;
         }
