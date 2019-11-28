@@ -7,7 +7,7 @@ using ArgsToClass.Attributes;
 
 namespace ArgsToClass
 {
-    public class SchemaParser<T>
+    internal class SchemaParser<T>
     {
         public SchemaBase GetSchema<TResult>(RootSchema rootSchema ,Expression<Func<T,TResult>> expression)
         {

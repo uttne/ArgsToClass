@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace ArgsToClass
 {
-    public class ValueParser
+    internal class ValueParser
     {
         public static object Parse(Type type, string value)
         {

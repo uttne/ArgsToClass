@@ -1,6 +1,6 @@
 ﻿namespace ArgsToClass
 {
-    public abstract class TokenBase
+    internal abstract class TokenBase
     {
         public override bool Equals(object obj)
         {
@@ -18,7 +18,7 @@
         }
     }
 
-    public sealed class OptionToken : TokenBase
+    internal sealed class OptionToken : TokenBase
     {
         public char ShortName { get; }
         public string LongName { get; }
@@ -67,7 +67,7 @@
         }
     }
 
-    public sealed class CommandToken : TokenBase
+    internal sealed class CommandToken : TokenBase
     {
         public string Name { get; }
         public string Description { get; }
@@ -107,7 +107,7 @@
         }
     }
 
-    public sealed class ExtraToken : TokenBase
+    internal sealed class ExtraToken : TokenBase
     {
         public string Value { get; }
 
