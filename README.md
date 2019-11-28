@@ -6,7 +6,7 @@ Parse command line arguments and create class data from it.
 ## Build status
 |Status|
 |:----:|
-|[![CircleCI](https://circleci.com/gh/uttne/ArgsToClass/tree/master.svg?style=svg)](https://circleci.com/gh/uttne/ArgsToClass/tree/master)|
+|![](https://circleci.com/gh/uttne/ArgsToClass.svg?style=shield&circle-token=9f378b9751964e0a8781b0242b0a5d7667923787)|
 
 ## Usage
 
