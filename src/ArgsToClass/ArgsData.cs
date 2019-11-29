@@ -11,7 +11,6 @@ namespace ArgsToClass
     {
         private readonly HashSet<string> _hasExpressionTextHashSet;
         private readonly SchemaBase _commandSchema;
-        private readonly object _command;
         private readonly SchemaBase _rootSchema;
 
         public ArgsData(TMainCommand mainCommand, HashSet<string> hasExpressionTextHashSet, IReadOnlyList<string> extra,
@@ -21,14 +20,15 @@ namespace ArgsToClass
 
             _hasExpressionTextHashSet = hasExpressionTextHashSet ?? throw new ArgumentNullException(nameof(hasExpressionTextHashSet));
             _commandSchema = commandSchema;
-            _command = command;
+            Command = command ?? mainCommand;
             _rootSchema = rootSchema;
 
             Extra = extra ?? new string[0];
         }
 
         public TMainCommand MainCommand { get; }
-        public object Command { get{throw new NotImplementedException();} }
+        public object Command { get; }
+
         public IReadOnlyList<string> Extra { get; }
 
         public static string ExpressionToString<T>(Expression<Func<TMainCommand, T>> propExpression)
