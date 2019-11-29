@@ -6,18 +6,18 @@ using System.Text;
 
 namespace ArgsToClass
 {
-    internal class ArgsData<TOption> : IArgsData<TOption>
-        where TOption :class,new()
+    internal class ArgsData<TMainCommand> : IArgsData<TMainCommand>
+        where TMainCommand :class,new()
     {
         private readonly HashSet<string> _hasExpressionTextHashSet;
         private readonly SchemaBase _commandSchema;
         private readonly object _command;
         private readonly SchemaBase _rootSchema;
 
-        public ArgsData(TOption option, HashSet<string> hasExpressionTextHashSet, IReadOnlyList<string> extra,
+        public ArgsData(TMainCommand mainCommand, HashSet<string> hasExpressionTextHashSet, IReadOnlyList<string> extra,
             SchemaBase commandSchema, object command, SchemaBase rootSchema)
         {
-            MainCommand = option ?? throw new ArgumentNullException(nameof(option));
+            MainCommand = mainCommand ?? throw new ArgumentNullException(nameof(mainCommand));
 
             _hasExpressionTextHashSet = hasExpressionTextHashSet ?? throw new ArgumentNullException(nameof(hasExpressionTextHashSet));
             _commandSchema = commandSchema;
@@ -27,11 +27,11 @@ namespace ArgsToClass
             Extra = extra ?? new string[0];
         }
 
-        public TOption MainCommand { get; }
+        public TMainCommand MainCommand { get; }
         public object Command { get{throw new NotImplementedException();} }
         public IReadOnlyList<string> Extra { get; }
 
-        public static string ExpressionToString<T>(Expression<Func<TOption, T>> propExpression)
+        public static string ExpressionToString<T>(Expression<Func<TMainCommand, T>> propExpression)
         {
             if (propExpression.Body.NodeType != ExpressionType.MemberAccess)
                 return "";
@@ -58,14 +58,14 @@ namespace ArgsToClass
             return stringBuilder.ToString();
         }
 
-        public bool Has<T>(Expression<Func<TOption, T>> propExpression)
+        public bool Has<T>(Expression<Func<TMainCommand, T>> propExpression)
         {
             var expressionText = ExpressionToString(propExpression);
 
             return _hasExpressionTextHashSet.Contains(expressionText);
         }
         
-        public SchemaBase GetSchema<T>(Expression<Func<TOption, T>> propExpression = null)
+        public SchemaBase GetSchema<T>(Expression<Func<TMainCommand, T>> propExpression = null)
         {
             if (propExpression == null)
                 return _rootSchema;
