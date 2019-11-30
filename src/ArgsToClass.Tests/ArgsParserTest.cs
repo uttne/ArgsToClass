@@ -35,7 +35,7 @@ namespace ArgsToClass.Tests
 
             public string Pi { get; set; }
 
-            [Command]
+            [SubCommand]
             public Rho Rho { get; set; }
             
         }
@@ -49,7 +49,7 @@ namespace ArgsToClass.Tests
 
             public string Sigma { get; set; }
 
-            [Command]
+            [SubCommand]
             public Tau Tau { get; set; }
         }
 
@@ -97,13 +97,13 @@ namespace ArgsToClass.Tests
 
             public string ZetaBeta { get; set; }
 
-            [Command(name: "Eta")]
+            [SubCommand(name: "Eta")]
             public Eta Eta { get; set; }
 
-            [Command(name: "Theta")]
+            [SubCommand(name: "Theta")]
             public Theta Theta { get; set; }
 
-            [Command(name: "IotaAlpha")]
+            [SubCommand(name: "IotaAlpha")]
             public Iota Iota { get; set; }
 
             [OptionIgnore]
@@ -113,7 +113,7 @@ namespace ArgsToClass.Tests
             [OptionIgnore]
             public string Lambda { get; set; }
 
-            [Command]
+            [SubCommand]
             [OptionIgnore]
             public Mu Mu { get; set; }
 
@@ -173,7 +173,7 @@ namespace ArgsToClass.Tests
             string[] args = new []{"-a" , "value"};
             var actual = parser.Parse(args);
 
-            Assert.Equal("value", actual.Option.Alpha);
+            Assert.Equal("value", actual.MainCommand.Alpha);
         }
 
         [Fact]

@@ -21,10 +21,10 @@ namespace ArgsToClass.Tests
             [Option()]
             [Attributes.Description("Opt5 description")]
             public Option1 Opt5 { get; set; }
-            [Command()]
+            [SubCommand()]
             [Attributes.Description("Com1 description")]
             public Command1 Com1 { get; set; }
-            [Command()]
+            [SubCommand()]
             public Command2 Com2 { get; set; }
 
         }
@@ -42,7 +42,7 @@ namespace ArgsToClass.Tests
         public class Command2
         {
             public string Opt1 { get; set; }
-            [Command()]
+            [SubCommand()]
             public Command1 Com1 { get; set; }
         }
 
@@ -54,7 +54,7 @@ namespace ArgsToClass.Tests
             var actual = parser.Parse();
 
             var type = typeof(OptionRoot);
-            var expected = new RootSchema("Root description",typeof(OptionRoot),
+            var expected = new CommandSchema("Root description",typeof(OptionRoot),
                 SchemaParser<OptionRoot>.GetCommandSchemata(type),
                 SchemaParser<OptionRoot>.GetOptionSchemata(type)
                 );
@@ -83,22 +83,42 @@ namespace ArgsToClass.Tests
             var type = typeof(OptionRoot);
             var command = SchemaParser<OptionRoot>.GetCommandSchemata(type).ToArray();
 
-            CommandSchema[] expected = {
-                new CommandSchema("com1","Com1 description",type.GetProperty(nameof(OptionRoot.Com1)),null,new []
+            SubCommandSchema[] expected = {
+                new SubCommandSchemaBuilder()
                 {
-                    new OptionSchema(default,"opt1",null,typeof(Command1).GetProperty(nameof(Command1.Opt1))),
-                }),
-                new CommandSchema("com2",null,type.GetProperty(nameof(OptionRoot.Com2)),new []
+                    Name = "com1",
+                    Description = "Com1 description",
+                    PropertyInfo = type.GetProperty(nameof(OptionRoot.Com1)),
+                    Commands = null,
+                    Options = new[]
                     {
-                        new CommandSchema("com1",null,typeof(Command2).GetProperty(nameof(Command2.Com1)),null,new []
+                        new OptionSchema(default,"opt1",null,typeof(Command1).GetProperty(nameof(Command1.Opt1))),
+                    }
+                }.Build(),
+                new SubCommandSchemaBuilder()
+                {
+                    Name = "com2",
+                    Description = null,
+                    PropertyInfo = type.GetProperty(nameof(OptionRoot.Com2)),
+                    Commands = new[]
+                    {
+                        new SubCommandSchemaBuilder()
                         {
-                            new OptionSchema(default,"opt1",null,typeof(Command1).GetProperty(nameof(Command1.Opt1))),
-                        }),
+                            Name = "com1",
+                            Description = null,
+                            PropertyInfo = typeof(Command2).GetProperty(nameof(Command2.Com1)),
+                            Commands = null,
+                            Options = new[]
+                            {
+                                new OptionSchema(default,"opt1",null,typeof(Command1).GetProperty(nameof(Command1.Opt1))),
+                            }
+                        }.Build(),
                     },
-                    new []
+                    Options = new[]
                     {
                         new OptionSchema(default,"opt1",null,typeof(Command2).GetProperty(nameof(Command2.Opt1))),
-                    }),
+                    }
+                }.Build(),
             };
             Assert.Equal(expected, command);
         }

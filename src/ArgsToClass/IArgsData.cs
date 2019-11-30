@@ -4,14 +4,23 @@ using System.Linq.Expressions;
 
 namespace ArgsToClass
 {
-    public interface IArgsData<TOption>
-        where TOption : class, new()
+    public interface IArgsData<TMainCommand>
+        where TMainCommand : class, new()
     {
-        TOption Option { get; }
+        /// <summary>
+        /// Get the main command.
+        /// </summary>
+        TMainCommand MainCommand { get; }
+
+        /// <summary>
+        /// Get the class corresponding to the selected sub command.
+        /// If there is no specified sub command, get <seealso cref="MainCommand"/>.
+        /// </summary>
+        object Command { get; }
 
         IReadOnlyList<string> Extra { get; }
 
-        bool Has<T>(Expression<Func<TOption, T>> propExpression);
+        bool Has<T>(Expression<Func<TMainCommand, T>> propExpression);
         
         /// <summary>
         /// Get option class schema data.
@@ -20,7 +29,7 @@ namespace ArgsToClass
         /// <param name="propExpression">Specify the schema property to be acquired.
         /// if null, root schema is returned.</param>
         /// <returns>Returns null if schema does not exist.</returns>
-        SchemaBase GetSchema<T>(Expression<Func<TOption, T>> propExpression = null);
+        SchemaBase GetSchema<T>(Expression<Func<TMainCommand, T>> propExpression = null);
 
         /// <summary>
         /// Get root option class schema data.

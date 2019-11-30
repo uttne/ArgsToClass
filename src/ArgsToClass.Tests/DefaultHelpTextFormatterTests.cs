@@ -22,12 +22,12 @@ Please full name.")]
             [Option(shortName:'p')]
             public string Password { get; set; }
 
-            [Command]
+            [SubCommand]
             [Description(@"Program running command.
 More description.")]
             public Run Run { get; set; }
 
-            [Command]
+            [SubCommand]
             [Description("Program debug command.")]
             public Debug Debug { get; set; }
         }

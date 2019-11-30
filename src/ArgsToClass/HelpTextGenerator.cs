@@ -8,19 +8,41 @@ namespace ArgsToClass
     /// <summary>
     /// Help text generator.
     /// </summary>
-    /// <typeparam name="TOption"></typeparam>
-    public class HelpTextGenerator<TOption>
-    where TOption:class,new()
+    /// <typeparam name="TMainCommand"></typeparam>
+    public class HelpTextGenerator<TMainCommand>
+    where TMainCommand:class,new()
     {
         private readonly IHelpTextFormatter _helpTextFormatter;
-        private readonly RootSchema _rootSchema;
+        private CommandSchema _commandSchema;
 
         public HelpTextGenerator(IHelpTextFormatter helpTextFormatter = null)
         {
             _helpTextFormatter = helpTextFormatter ?? new DefaultHelpTextFormatter();
-            var schemaParser = new SchemaParser<TOption>();
+        }
 
-            _rootSchema = schemaParser.Parse();
+        /// <summary>
+        /// Get help text for root option.
+        /// </summary>
+        /// <returns>Help text</returns>
+        public string GetHelpText()
+        {
+            if (_commandSchema == null)
+            {
+                var schemaParser = new SchemaParser<TMainCommand>();
+                _commandSchema = schemaParser.Parse();
+            }
+            
+            var schema = _commandSchema;
+
+            switch (schema)
+            {
+                case SubCommandSchema commandSchema:
+                    return _helpTextFormatter.Format(commandSchema);
+                case CommandSchema rootSchema:
+                    return _helpTextFormatter.Format(rootSchema);
+                default:
+                    return null;
+            }
         }
 
         /// <summary>
@@ -28,16 +50,16 @@ namespace ArgsToClass
         /// </summary>
         /// <param name="argsData">Parse result</param>
         /// <returns>Help text</returns>
-        public string GetHelpText(IArgsData<TOption> argsData)
+        public string GetHelpText(IArgsData<TMainCommand> argsData)
         {
             var schema = argsData.GetSchema();
 
             switch (schema)
             {
-                case RootSchema rootSchema:
-                    return _helpTextFormatter.Format(rootSchema);
-                case CommandSchema commandSchema:
+                case SubCommandSchema commandSchema:
                     return _helpTextFormatter.Format(commandSchema);
+                case CommandSchema rootSchema:
+                    return _helpTextFormatter.Format(rootSchema);
                 default:
                     return null;
             }
@@ -50,23 +72,23 @@ namespace ArgsToClass
         /// <param name="argsData">Parse result</param>
         /// <param name="expression">Specifying command</param>
         /// <returns>Help text</returns>
-        public string GetHelpText<TCommand>(IArgsData<TOption> argsData, Expression<Func<TOption, TCommand>> expression)
+        public string GetHelpText<TCommand>(IArgsData<TMainCommand> argsData, Expression<Func<TMainCommand, TCommand>> expression)
         {
             var schema = argsData.GetSchema(expression);
 
             switch (schema)
             {
-                case RootSchema rootSchema:
-                    return _helpTextFormatter.Format(rootSchema);
-                case CommandSchema commandSchema:
+                case SubCommandSchema commandSchema:
                     return _helpTextFormatter.Format(commandSchema);
+                case CommandSchema rootSchema:
+                    return _helpTextFormatter.Format(rootSchema);
                 default:
                     return null;
             }
         }
 
 
-        public string GetDescription<T>(Expression<Func<TOption, T>> expression)
+        public string GetDescription<T>(Expression<Func<TMainCommand, T>> expression)
         {
             if (expression.Body.NodeType != ExpressionType.MemberAccess)
                 return null;
@@ -87,7 +109,7 @@ namespace ArgsToClass
                 list.Insert(0, name);
             }
 
-            SchemaBase schema = _rootSchema;
+            SchemaBase schema = _commandSchema;
             foreach (var name in list)
             {
                 var command = schema.Commands.FirstOrDefault(x => x.PropertyInfo.Name == name);
@@ -107,7 +129,7 @@ namespace ArgsToClass
 
             switch (schema)
             {
-                case CommandSchema commandSchema:
+                case SubCommandSchema commandSchema:
                     return commandSchema.Description;
                 case OptionSchema optionSchema:
                     return optionSchema.Description;

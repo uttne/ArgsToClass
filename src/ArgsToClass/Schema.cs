@@ -12,13 +12,13 @@ namespace ArgsToClass
         private readonly int _optionsHashCode;
 
         protected SchemaBase()
-            :this(new CommandSchema[0], new OptionSchema[0])
+            :this(new SubCommandSchema[0], new OptionSchema[0])
         {
         }
 
-        protected SchemaBase(IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options)
+        protected SchemaBase(IReadOnlyList<SubCommandSchema> commands, IReadOnlyList<OptionSchema> options)
         {
-            Commands = commands ?? new CommandSchema[0];
+            Commands = commands ?? new SubCommandSchema[0];
             Options = options ?? new OptionSchema[0];
 
             _commandsHashCode =
@@ -27,27 +27,27 @@ namespace ArgsToClass
                 Options.Aggregate(0, (code, schema) => unchecked((code * 397) ^ (schema?.GetHashCode() ?? 0)));
         }
 
-        public IReadOnlyList<CommandSchema> Commands { get; }
+        public IReadOnlyList<SubCommandSchema> Commands { get; }
         public IReadOnlyList<OptionSchema> Options { get; }
 
-        public IReadOnlyList<CommandSchema> GetAllCommands() =>
+        public IReadOnlyList<SubCommandSchema> GetAllCommands() =>
             Commands.Concat(Commands.SelectMany(GetContainAllCommands)).ToArray();
 
-        protected static IReadOnlyList<CommandSchema> GetContainAllCommands(CommandSchema command) =>
-            command == null
-                ? new CommandSchema[0]
-                : command.Commands
+        protected static IReadOnlyList<SubCommandSchema> GetContainAllCommands(SubCommandSchema subCommand) =>
+            subCommand == null
+                ? new SubCommandSchema[0]
+                : subCommand.Commands
                     .Where(x => x is null == false)
-                    .Concat(command.Commands.SelectMany(GetContainAllCommands))
+                    .Concat(subCommand.Commands.SelectMany(GetContainAllCommands))
                     .ToArray();
 
         protected IReadOnlyList<OptionSchema> GetAllOptions() =>
             Options.Concat(Commands.SelectMany(GetContainAllOptions)).ToArray();
 
-        public static IReadOnlyList<OptionSchema> GetContainAllOptions(CommandSchema command) =>
-            command == null
+        public static IReadOnlyList<OptionSchema> GetContainAllOptions(SubCommandSchema subCommand) =>
+            subCommand == null
                 ? new OptionSchema[0]
-                : command.Options.Concat(command.Commands.SelectMany(GetContainAllOptions)).ToArray();
+                : subCommand.Options.Concat(subCommand.Commands.SelectMany(GetContainAllOptions)).ToArray();
 
         public static string ConvertOptionName(string propertyName) =>
             propertyName.Aggregate("",
@@ -88,30 +88,30 @@ namespace ArgsToClass
         }
     }
 
-    public sealed class RootSchema : SchemaBase
+    public class CommandSchema : SchemaBase
     {
         public string Description { get; }
         public Type Type { get; }
 
-        public RootSchema(string description,Type type,IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options) 
+        public CommandSchema(string description,Type type,IReadOnlyList<SubCommandSchema> commands, IReadOnlyList<OptionSchema> options) 
             : base(commands, options)
         {
             Description = description;
             Type = type;
         }
 
-        public static RootSchema Create(DescriptionAttribute descriptionAttribute, Type type, IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options)
+        public static CommandSchema Create(DescriptionAttribute descriptionAttribute, Type type, IReadOnlyList<SubCommandSchema> commands, IReadOnlyList<OptionSchema> options)
         {
             var description = descriptionAttribute?.Description;
-            return new RootSchema(description, type, commands, options);
+            return new CommandSchema(description, type, commands, options);
         }
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as RootSchema);
+            return Equals(obj as CommandSchema);
         }
 
-        public bool Equals(RootSchema other)
+        public bool Equals(CommandSchema other)
         {
             return other != null
                    && base.Equals(other)
@@ -140,7 +140,7 @@ namespace ArgsToClass
         public bool IsSwitch { get; }
 
         public OptionSchema(ImmVal<char> shortName,string longName,string description, PropertyInfo propertyInfo)
-            : base(new CommandSchema[0], new OptionSchema[0])
+            : base(new SubCommandSchema[0], new OptionSchema[0])
         {
             ShortName = shortName;
             LongName = longName;
@@ -188,33 +188,32 @@ namespace ArgsToClass
         }
     }
 
-    public sealed class CommandSchema : SchemaBase
+    public sealed class SubCommandSchema : CommandSchema
     {
         public string Name { get; }
-        public string Description { get; }
         public PropertyInfo PropertyInfo { get; }
 
-        public CommandSchema(string name, string description,PropertyInfo propertyInfo,IReadOnlyList < CommandSchema> commands, IReadOnlyList<OptionSchema> options)
-            : base(commands, options)
+        public SubCommandSchema(string name, string description,Type type,PropertyInfo propertyInfo,IReadOnlyList < SubCommandSchema> commands, IReadOnlyList<OptionSchema> options)
+            : base(description, type, commands, options)
         {
             Name = name;
-            Description = description;
             PropertyInfo = propertyInfo;
         }
 
-        public static CommandSchema Create(CommandAttribute commandAttribute,DescriptionAttribute descriptionAttribute,PropertyInfo propertyInfo , IReadOnlyList<CommandSchema> commands, IReadOnlyList<OptionSchema> options)
+        public static SubCommandSchema Create(SubCommandAttribute subCommandAttribute,DescriptionAttribute descriptionAttribute,PropertyInfo propertyInfo , IReadOnlyList<SubCommandSchema> commands, IReadOnlyList<OptionSchema> options)
         {
-            var name = commandAttribute?.Name ?? ConvertOptionName(propertyInfo.Name);
+            var name = subCommandAttribute?.Name ?? ConvertOptionName(propertyInfo.Name);
             var description = descriptionAttribute?.Description;
-            return new CommandSchema(name, description, propertyInfo, commands, options);
+            var type = propertyInfo.PropertyType;
+            return new SubCommandSchema(name, description, type, propertyInfo, commands, options);
         }
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as CommandSchema);
+            return Equals(obj as SubCommandSchema);
         }
 
-        public bool Equals(CommandSchema other)
+        public bool Equals(SubCommandSchema other)
         {
             return other != null 
                    && base.Equals(other)

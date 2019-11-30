@@ -17,7 +17,7 @@ namespace ArgsToClass.Tests
             [Option()]
             public string Path { get; set; }
 
-            [Command()]
+            [SubCommand()]
             public Run Run { get; set; }
         }
 

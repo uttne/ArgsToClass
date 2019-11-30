@@ -78,7 +78,7 @@
             Description = description;
         }
 
-        public static CommandToken Create(CommandSchema schema)
+        public static CommandToken Create(SubCommandSchema schema)
         {
             return new CommandToken(schema.Name, schema.Description);
         }
