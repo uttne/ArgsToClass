@@ -8,9 +8,9 @@ namespace ArgsToClass
     /// <summary>
     /// Help text generator.
     /// </summary>
-    /// <typeparam name="TOption"></typeparam>
-    public class HelpTextGenerator<TOption>
-    where TOption:class,new()
+    /// <typeparam name="TMainCommand"></typeparam>
+    public class HelpTextGenerator<TMainCommand>
+    where TMainCommand:class,new()
     {
         private readonly IHelpTextFormatter _helpTextFormatter;
         private readonly CommandSchema _commandSchema;
@@ -18,7 +18,7 @@ namespace ArgsToClass
         public HelpTextGenerator(IHelpTextFormatter helpTextFormatter = null)
         {
             _helpTextFormatter = helpTextFormatter ?? new DefaultHelpTextFormatter();
-            var schemaParser = new SchemaParser<TOption>();
+            var schemaParser = new SchemaParser<TMainCommand>();
 
             _commandSchema = schemaParser.Parse();
         }
@@ -28,7 +28,7 @@ namespace ArgsToClass
         /// </summary>
         /// <param name="argsData">Parse result</param>
         /// <returns>Help text</returns>
-        public string GetHelpText(IArgsData<TOption> argsData)
+        public string GetHelpText(IArgsData<TMainCommand> argsData)
         {
             var schema = argsData.GetSchema();
 
@@ -50,7 +50,7 @@ namespace ArgsToClass
         /// <param name="argsData">Parse result</param>
         /// <param name="expression">Specifying command</param>
         /// <returns>Help text</returns>
-        public string GetHelpText<TCommand>(IArgsData<TOption> argsData, Expression<Func<TOption, TCommand>> expression)
+        public string GetHelpText<TCommand>(IArgsData<TMainCommand> argsData, Expression<Func<TMainCommand, TCommand>> expression)
         {
             var schema = argsData.GetSchema(expression);
 
@@ -66,7 +66,7 @@ namespace ArgsToClass
         }
 
 
-        public string GetDescription<T>(Expression<Func<TOption, T>> expression)
+        public string GetDescription<T>(Expression<Func<TMainCommand, T>> expression)
         {
             if (expression.Body.NodeType != ExpressionType.MemberAccess)
                 return null;
