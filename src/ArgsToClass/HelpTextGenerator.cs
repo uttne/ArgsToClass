@@ -13,14 +13,36 @@ namespace ArgsToClass
     where TMainCommand:class,new()
     {
         private readonly IHelpTextFormatter _helpTextFormatter;
-        private readonly CommandSchema _commandSchema;
+        private CommandSchema _commandSchema;
 
         public HelpTextGenerator(IHelpTextFormatter helpTextFormatter = null)
         {
             _helpTextFormatter = helpTextFormatter ?? new DefaultHelpTextFormatter();
-            var schemaParser = new SchemaParser<TMainCommand>();
+        }
 
-            _commandSchema = schemaParser.Parse();
+        /// <summary>
+        /// Get help text for root option.
+        /// </summary>
+        /// <returns>Help text</returns>
+        public string GetHelpText()
+        {
+            if (_commandSchema == null)
+            {
+                var schemaParser = new SchemaParser<TMainCommand>();
+                _commandSchema = schemaParser.Parse();
+            }
+            
+            var schema = _commandSchema;
+
+            switch (schema)
+            {
+                case SubCommandSchema commandSchema:
+                    return _helpTextFormatter.Format(commandSchema);
+                case CommandSchema rootSchema:
+                    return _helpTextFormatter.Format(rootSchema);
+                default:
+                    return null;
+            }
         }
 
         /// <summary>
