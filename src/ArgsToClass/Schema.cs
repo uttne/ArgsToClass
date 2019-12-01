@@ -93,6 +93,9 @@ namespace ArgsToClass
         public string Description { get; }
         public Type Type { get; }
 
+        // Todo 実装する
+        public IReadOnlyList<ExtraSchema> Extras { get; }
+
         public CommandSchema(string description,Type type,IReadOnlyList<SubCommandSchema> commands, IReadOnlyList<OptionSchema> options) 
             : base(commands, options)
         {
@@ -228,6 +231,49 @@ namespace ArgsToClass
             {
                 int hashCode = base.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (PropertyInfo != null ? PropertyInfo.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
+    }
+
+    public sealed class ExtraSchema:SchemaBase
+    {
+        public string Description { get; }
+        public PropertyInfo PropertyInfo { get; }
+
+        public ExtraSchema(string description, PropertyInfo propertyInfo)
+        :base(null,null)
+        {
+            Description = description;
+            PropertyInfo = propertyInfo;
+        }
+
+        public static ExtraSchema Create(ExtraAttribute extraAttribute, DescriptionAttribute descriptionAttribute, PropertyInfo propertyInfo)
+        {
+            var description = descriptionAttribute?.Description;
+            return new ExtraSchema(description,propertyInfo);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj as ExtraSchema);
+        }
+
+        private bool Equals(ExtraSchema other)
+        {
+            return other != null
+                   && base.Equals(other)
+                   && Description == other.Description
+                   && EqualityComparer<PropertyInfo>.Default.Equals(PropertyInfo, other.PropertyInfo);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = base.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (PropertyInfo != null ? PropertyInfo.GetHashCode() : 0);
                 return hashCode;

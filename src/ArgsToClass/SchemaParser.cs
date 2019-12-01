@@ -53,6 +53,14 @@ namespace ArgsToClass
                 .Select(GetOptionSchema)
                 .ToArray();
 
+        public static IReadOnlyList<ExtraSchema> GetExtraSchemata(Type type) =>
+            type.GetProperties()
+                .Where(prop => prop.CanWrite)
+                .Select(GetSchemaAttribute)
+                .Where(x => x.schema is ExtraAttribute || x.schema is null)
+                .Select(GetExtraSchema)
+                .ToArray();
+
         public static SubCommandSchema GetCommandSchema(
             (SchemaAttribute schemaAtt, DescriptionAttribute description, PropertyInfo propInfo) set) =>
             SubCommandSchema.Create(
@@ -65,6 +73,10 @@ namespace ArgsToClass
             (SchemaAttribute schemaAtt, DescriptionAttribute description, PropertyInfo propInfo) set) =>
             OptionSchema.Create(set.schemaAtt as OptionAttribute, set.description, set.propInfo);
 
+        public static ExtraSchema GetExtraSchema(
+            (SchemaAttribute schemaAtt, DescriptionAttribute description, PropertyInfo propInfo) set) =>
+            ExtraSchema.Create(set.schemaAtt as ExtraAttribute, set.description, set.propInfo);
+
         public static (SchemaAttribute schema, DescriptionAttribute description, PropertyInfo propInfo) GetSchemaAttribute(PropertyInfo propInfo) =>
         (
             Attribute.GetCustomAttributes(propInfo)
@@ -72,7 +84,9 @@ namespace ArgsToClass
                 .OrderBy(att =>
                     att is OptionIgnoreAttribute ? 0 :
                     att is SubCommandAttribute ? 1 :
-                    att is OptionAttribute ? 2 : int.MaxValue)
+                    att is OptionAttribute ? 2 :
+                    att is ExtraAttribute ? 3 :
+                    int.MaxValue)
                 .FirstOrDefault(),
             Attribute.GetCustomAttributes(propInfo)
                 .OfType<DescriptionAttribute>()
