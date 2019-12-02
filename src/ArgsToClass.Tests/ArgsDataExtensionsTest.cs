@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace ArgsToClass.Tests
 {
@@ -91,6 +92,13 @@ namespace ArgsToClass.Tests
 
     public class ArgsDataExtensionsTest
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public ArgsDataExtensionsTest(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public void GetExtensionMethodInfosTest()
         {
