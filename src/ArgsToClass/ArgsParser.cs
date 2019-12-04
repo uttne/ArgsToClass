@@ -11,14 +11,14 @@ namespace ArgsToClass
                 .ToArray();
 
 
-        internal static IReadOnlyList<(TokenBase, SchemaBase)> ParseToTokenSchemaPairs(SchemaBase schema, string[] args)
+        internal static IReadOnlyList<(TokenBase, SchemaBase[])> ParseToTokenSchemaPairs(CommandSchema schema, string[] args)
         {
             if (schema == null)
                 throw new ArgumentNullException(nameof(schema));
             if (args == null)
                 throw new ArgumentNullException(nameof(args));
 
-            var list = new List<(TokenBase, SchemaBase)>();
+            var list = new List<(TokenBase, SchemaBase[])>();
 
             OptionSchema prevOption = null;
             foreach (var arg in args)
@@ -26,7 +26,7 @@ namespace ArgsToClass
                 if (prevOption != null)
                 {
                     var optionToken = OptionToken.Create(prevOption, arg);
-                    list.Add((optionToken, prevOption));
+                    list.Add((optionToken, new SchemaBase[] {prevOption}));
                     prevOption = null;
                     continue;
                 }
@@ -43,12 +43,12 @@ namespace ArgsToClass
                         if (option.IsSwitch)
                         {
                             var optionToken = OptionToken.Create(option, argToken.Switch != "-" ? "true" : "false");
-                            list.Add((optionToken, option));
+                            list.Add((optionToken, new SchemaBase[] {option}));
                         }
                         else if (argToken.Value.HasValue)
                         {
                             var optionToken = OptionToken.Create(option, argToken.Value.Value);
-                            list.Add((optionToken, option));
+                            list.Add((optionToken, new SchemaBase[] {option}));
                         }
                         else
                         {
@@ -66,7 +66,7 @@ namespace ArgsToClass
                     foreach (var optionSchema in options)
                     {
                         var optionToken = OptionToken.Create(optionSchema, "true");
-                        list.Add((optionToken, optionSchema));
+                        list.Add((optionToken, new SchemaBase[] {optionSchema}));
                     }
                 }
                 else
@@ -74,14 +74,14 @@ namespace ArgsToClass
                     var command = schema.Commands.FirstOrDefault(x => string.Equals(x.Name, arg, StringComparison.OrdinalIgnoreCase));
                     if (command != null)
                     {
-                        list.Add((CommandToken.Create(command), command));
+                        list.Add((CommandToken.Create(command), new SchemaBase[] {command}));
                         schema = command;
                         continue;
                     }
                 }
 
                 var extraToken = new ExtraToken(arg);
-                list.Add((extraToken, null));
+                list.Add((extraToken, schema.Extras.Cast<SchemaBase>().ToArray()));
             }
 
             return list;
@@ -135,7 +135,7 @@ namespace ArgsToClass
             return option;
         }
 
-        private IArgsData<TOption> CreateOption(SchemaBase rootSchema, IReadOnlyList<(TokenBase, SchemaBase)> tokenSchemaPairs)
+        private IArgsData<TOption> CreateOption(CommandSchema rootSchema, IReadOnlyList<(TokenBase, SchemaBase[])> tokenSchemaPairs)
         {
             var option = ActivateOption();
             var hasExpressionTextHashSet = new HashSet<string>();
@@ -143,11 +143,15 @@ namespace ArgsToClass
             var extra = new List<string>();
 
             object commandCursor = option;
-            SchemaBase commandSchemaCursor = rootSchema;
+            var commandSchemaCursor = rootSchema;
+            var commands = new List<object> {commandCursor};
+            // Key : commands index
+            var extraSchemataDic = new Dictionary<int, ExtraSchema[]>();
+            var extraDic = new Dictionary<int, List<string>>();
 
-            foreach (var (token, schema) in tokenSchemaPairs)
+            foreach (var (token, schemata) in tokenSchemaPairs)
             {
-                if (token is OptionToken optionToken && schema is OptionSchema optionSchema)
+                if (token is OptionToken optionToken && 0 <schemata.Length && schemata[0] is OptionSchema optionSchema)
                 {
                     var value = ValueParser.Parse(optionSchema.PropertyInfo.PropertyType, optionToken.Value);
 
@@ -155,24 +159,44 @@ namespace ArgsToClass
 
                     hasExpressionTextHashSet.Add(commandExpressionName + "." + optionSchema.PropertyInfo.Name);
                 }
-                else if (token is CommandToken commandToken && schema is SubCommandSchema commandSchema)
+                else if (token is CommandToken commandToken && 0 < schemata.Length && schemata[0] is SubCommandSchema commandSchema)
                 {
                     var command = Activator.CreateInstance(commandSchema.PropertyInfo.PropertyType);
 
                     commandSchema.PropertyInfo.SetValue(commandCursor, command);
                     commandCursor = command;
+                    commands.Add(commandCursor);
                     commandExpressionName += "." + commandSchema.PropertyInfo.Name;
 
                     hasExpressionTextHashSet.Add(commandExpressionName);
 
                     commandSchemaCursor = commandSchema;
                 }
-                else if (token is ExtraToken extraToken && schema == null)
+                else if (token is ExtraToken extraToken && 0 < schemata.Length && schemata[0] is ExtraSchema)
                 {
                     extra.Add(extraToken.Value);
+
+                    if (extraSchemataDic.ContainsKey(commands.Count - 1) == false)
+                        extraSchemataDic[commands.Count - 1] = schemata.OfType<ExtraSchema>().ToArray();
+                    
+
+                    if (extraDic.TryGetValue(commands.Count - 1, out var extraList) == false)
+                    {
+                        extraDic[commands.Count - 1] = extraList = new List<string>();
+                    }
+                    extraList.Add(extraToken.Value);
                 }
             }
 
+            foreach (var (index, extraList) in extraDic.Select(x => (index: x.Key, extraList: x.Value)))
+            {
+                var command = commands[index];
+                foreach (var extraSchema in extraSchemataDic[index])
+                {
+                    var extras = extraList.ToList();
+                    extraSchema.PropertyInfo.SetValue(command, extras);
+                }
+            }
 
             return new ArgsData<TOption>(option, hasExpressionTextHashSet, extra, commandSchemaCursor, commandCursor, rootSchema);
         }

@@ -18,6 +18,9 @@ namespace ArgsToClass
         /// </summary>
         object Command { get; }
 
+        /// <summary>
+        /// Extra command line arguments.
+        /// </summary>
         IReadOnlyList<string> Extra { get; }
 
         bool Has<T>(Expression<Func<TMainCommand, T>> propExpression);

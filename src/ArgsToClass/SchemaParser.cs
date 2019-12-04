@@ -7,25 +7,13 @@ using ArgsToClass.Attributes;
 
 namespace ArgsToClass
 {
-    internal class SchemaParser<T>
+    internal static class SchemaParser
     {
-        public SchemaBase GetSchema<TResult>(CommandSchema commandSchema ,Expression<Func<T,TResult>> expression)
-        {
-            throw new NotImplementedException();
-        }
-
-        public CommandSchema Parse() =>
-            CommandSchema.Create(
-                Attribute.GetCustomAttributes(typeof(T)).OfType<DescriptionAttribute>().FirstOrDefault(),
-                typeof(T), GetCommandSchemata(typeof(T)),
-                GetOptionSchemata(typeof(T))
-            );
-
         /// <summary>
         /// 
         /// </summary>
         /// <remarks>
-        /// Note that it is a recursive function via <see cref="GetCommandSchema"/>.
+        /// Note that it is a recursive function via <see cref="GetSubCommandSchema"/>.
         /// Todo Command が循環参照になっている場合スタックオーバーフローになると思うので適切な例外を発生するように修正する
         /// </remarks>
         /// <param name="type"></param>
@@ -35,8 +23,8 @@ namespace ArgsToClass
                 .Where(prop => prop.CanWrite)
                 .Select(GetSchemaAttribute)
                 .Where(x => x.schema is SubCommandAttribute)
-                .Select(x=>x.propInfo.PropertyType.IsClass ? x : throw new InvalidOperationException($"'{x.propInfo.PropertyType.FullName}' is not class."))
-                .Select(GetCommandSchema)
+                .Select(x => x.propInfo.PropertyType.IsClass ? x : throw new InvalidOperationException($"'{x.propInfo.PropertyType.FullName}' is not class."))
+                .Select(GetSubCommandSchema)
                 .ToArray();
 
 
@@ -49,7 +37,16 @@ namespace ArgsToClass
             type.GetProperties()
                 .Where(prop => prop.CanWrite)
                 .Select(GetSchemaAttribute)
-                .Where(x => x.schema is OptionAttribute || x.schema is null)
+                .Where(x =>
+                    x.schema is OptionAttribute
+                    || (
+                        x.schema is null
+                        && (
+                            string.Equals(x.propInfo.Name, nameof(ICommand.Extra), StringComparison.OrdinalIgnoreCase)
+                            && typeof(List<string>).IsAssignableFrom(x.propInfo.PropertyType)
+                            ) == false
+                        )
+                    )
                 .Select(GetOptionSchema)
                 .ToArray();
 
@@ -57,17 +54,20 @@ namespace ArgsToClass
             type.GetProperties()
                 .Where(prop => prop.CanWrite)
                 .Select(GetSchemaAttribute)
-                .Where(x => x.schema is ExtraAttribute || x.schema is null)
+                .Where(x => x.schema is ExtraAttribute
+                            || (x.schema is null
+                                && (
+                                    string.Equals(x.propInfo.Name, nameof(ICommand.Extra), StringComparison.OrdinalIgnoreCase)
+                                    && typeof(List<string>).IsAssignableFrom(x.propInfo.PropertyType)
+                                )
+                            )
+                )
                 .Select(GetExtraSchema)
                 .ToArray();
 
-        public static SubCommandSchema GetCommandSchema(
+        public static SubCommandSchema GetSubCommandSchema(
             (SchemaAttribute schemaAtt, DescriptionAttribute description, PropertyInfo propInfo) set) =>
-            SubCommandSchema.Create(
-                set.schemaAtt as SubCommandAttribute, set.description, set.propInfo,
-                GetCommandSchemata(set.propInfo.PropertyType),
-                GetOptionSchemata(set.propInfo.PropertyType)
-            );
+            SubCommandSchema.Create(set.schemaAtt as SubCommandAttribute, set.description, set.propInfo);
 
         public static OptionSchema GetOptionSchema(
             (SchemaAttribute schemaAtt, DescriptionAttribute description, PropertyInfo propInfo) set) =>
@@ -95,5 +95,15 @@ namespace ArgsToClass
             propInfo
         );
 
+    }
+
+    internal class SchemaParser<T>
+    {
+        public SchemaBase GetSchema<TResult>(CommandSchema commandSchema, Expression<Func<T, TResult>> expression)
+        {
+            throw new NotImplementedException();
+        }
+
+        public CommandSchema Parse() => CommandSchema.Create(typeof(T));
     }
 }

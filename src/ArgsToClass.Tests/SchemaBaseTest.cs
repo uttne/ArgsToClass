@@ -17,10 +17,13 @@ namespace ArgsToClass.Tests
         public IList<SubCommandSchema> Commands { get; set; }
 
         public IList<OptionSchema> Options { get; set; }
+
+        public IList<ExtraSchema> Extras { get; set; }
+
         public Type Type { get; set; }
         public SubCommandSchema Build()
         {
-            return new SubCommandSchema(Name, Description, Type ?? PropertyInfo?.PropertyType, PropertyInfo, Commands?.ToArray(), Options?.ToArray());
+            return new SubCommandSchema(Name, Description, Type ?? PropertyInfo?.PropertyType, PropertyInfo, Commands?.ToArray(), Options?.ToArray(), Extras?.ToArray());
         }
 
         public string OneLineDescription { get; set; }
