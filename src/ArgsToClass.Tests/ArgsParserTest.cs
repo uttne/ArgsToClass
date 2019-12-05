@@ -5,7 +5,7 @@ using Xunit;
 
 namespace ArgsToClass.Tests
 {
-    public class ArgsParserTest
+    public partial class ArgsParserTest
     {
         public class Epsilon
         {
