@@ -93,17 +93,32 @@ namespace ArgsToClass
         public string Description { get; }
         public Type Type { get; }
 
-        public CommandSchema(string description,Type type,IReadOnlyList<SubCommandSchema> commands, IReadOnlyList<OptionSchema> options) 
+        // Todo 実装する
+        public IReadOnlyList<ExtraSchema> Extras { get; }
+
+        public CommandSchema(string description,Type type,IReadOnlyList<SubCommandSchema> commands, IReadOnlyList<OptionSchema> options, IReadOnlyList<ExtraSchema> extras) 
             : base(commands, options)
         {
             Description = description;
             Type = type;
+            Extras = extras ?? new ExtraSchema[0];
         }
 
-        public static CommandSchema Create(DescriptionAttribute descriptionAttribute, Type type, IReadOnlyList<SubCommandSchema> commands, IReadOnlyList<OptionSchema> options)
+        public static CommandSchema Create(DescriptionAttribute descriptionAttribute, Type type, IReadOnlyList<SubCommandSchema> commands, IReadOnlyList<OptionSchema> options, IReadOnlyList<ExtraSchema> extras)
         {
             var description = descriptionAttribute?.Description;
-            return new CommandSchema(description, type, commands, options);
+            return new CommandSchema(description, type, commands, options, extras);
+        }
+
+        public static CommandSchema Create(Type type)
+        {
+            var description = Attribute.GetCustomAttributes(type)
+                .OfType<DescriptionAttribute>().FirstOrDefault()?.Description;
+            var commands = SchemaParser.GetCommandSchemata(type);
+            var options = SchemaParser.GetOptionSchemata(type);
+            var extras = SchemaParser.GetExtraSchemata(type);
+
+            return new CommandSchema(description, type, commands, options, extras);
         }
 
         public override bool Equals(object obj)
@@ -193,19 +208,22 @@ namespace ArgsToClass
         public string Name { get; }
         public PropertyInfo PropertyInfo { get; }
 
-        public SubCommandSchema(string name, string description,Type type,PropertyInfo propertyInfo,IReadOnlyList < SubCommandSchema> commands, IReadOnlyList<OptionSchema> options)
-            : base(description, type, commands, options)
+        public SubCommandSchema(string name, string description,Type type,PropertyInfo propertyInfo,IReadOnlyList < SubCommandSchema> commands, IReadOnlyList<OptionSchema> options, IReadOnlyList<ExtraSchema> extras)
+            : base(description, type, commands, options, extras)
         {
             Name = name;
             PropertyInfo = propertyInfo;
         }
 
-        public static SubCommandSchema Create(SubCommandAttribute subCommandAttribute,DescriptionAttribute descriptionAttribute,PropertyInfo propertyInfo , IReadOnlyList<SubCommandSchema> commands, IReadOnlyList<OptionSchema> options)
+        public static SubCommandSchema Create(SubCommandAttribute subCommandAttribute,DescriptionAttribute descriptionAttribute,PropertyInfo propertyInfo)
         {
             var name = subCommandAttribute?.Name ?? ConvertOptionName(propertyInfo.Name);
             var description = descriptionAttribute?.Description;
             var type = propertyInfo.PropertyType;
-            return new SubCommandSchema(name, description, type, propertyInfo, commands, options);
+            var commands = SchemaParser.GetCommandSchemata(type);
+            var options = SchemaParser.GetOptionSchemata(type);
+            var extras = SchemaParser.GetExtraSchemata(type);
+            return new SubCommandSchema(name, description, type, propertyInfo, commands, options, extras);
         }
 
         public override bool Equals(object obj)
@@ -228,6 +246,49 @@ namespace ArgsToClass
             {
                 int hashCode = base.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (PropertyInfo != null ? PropertyInfo.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
+    }
+
+    public sealed class ExtraSchema:SchemaBase
+    {
+        public string Description { get; }
+        public PropertyInfo PropertyInfo { get; }
+
+        public ExtraSchema(string description, PropertyInfo propertyInfo)
+        :base(null,null)
+        {
+            Description = description;
+            PropertyInfo = propertyInfo;
+        }
+
+        public static ExtraSchema Create(ExtraAttribute extraAttribute, DescriptionAttribute descriptionAttribute, PropertyInfo propertyInfo)
+        {
+            var description = descriptionAttribute?.Description;
+            return new ExtraSchema(description,propertyInfo);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj as ExtraSchema);
+        }
+
+        private bool Equals(ExtraSchema other)
+        {
+            return other != null
+                   && base.Equals(other)
+                   && Description == other.Description
+                   && EqualityComparer<PropertyInfo>.Default.Equals(PropertyInfo, other.PropertyInfo);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hashCode = base.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Description != null ? Description.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ (PropertyInfo != null ? PropertyInfo.GetHashCode() : 0);
                 return hashCode;

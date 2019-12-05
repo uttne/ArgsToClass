@@ -55,8 +55,9 @@ namespace ArgsToClass.Tests
 
             var type = typeof(OptionRoot);
             var expected = new CommandSchema("Root description",typeof(OptionRoot),
-                SchemaParser<OptionRoot>.GetCommandSchemata(type),
-                SchemaParser<OptionRoot>.GetOptionSchemata(type)
+                SchemaParser.GetCommandSchemata(type),
+                SchemaParser.GetOptionSchemata(type),
+                SchemaParser.GetExtraSchemata(type)
                 );
             
             Assert.Equal(expected, actual);
@@ -66,7 +67,7 @@ namespace ArgsToClass.Tests
         public void GetOptionSchemataTest()
         {
             var type = typeof(OptionRoot);
-            var options = SchemaParser<OptionRoot>.GetOptionSchemata(type).ToArray();
+            var options = SchemaParser.GetOptionSchemata(type).ToArray();
 
             OptionSchema[] expected = {
                 new OptionSchema(default,"opt1",null,type.GetProperty("Opt1")),
@@ -81,7 +82,7 @@ namespace ArgsToClass.Tests
         public void GeCommandSchemataTest()
         {
             var type = typeof(OptionRoot);
-            var command = SchemaParser<OptionRoot>.GetCommandSchemata(type).ToArray();
+            var command = SchemaParser.GetCommandSchemata(type).ToArray();
 
             SubCommandSchema[] expected = {
                 new SubCommandSchemaBuilder()
