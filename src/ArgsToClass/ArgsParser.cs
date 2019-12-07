@@ -87,7 +87,7 @@ namespace ArgsToClass
             return list;
         }
 
-        internal static OptionSchema[] SelectOptionSchema(SchemaBase schema, ArgToken argToken)
+        internal static OptionSchema[] SelectOptionSchema(CommandSchema schema, ArgToken argToken)
         {
             var name = argToken.Name.Value.ToLower();
 

@@ -11,10 +11,10 @@ namespace ArgsToClass
     {
         private readonly HashSet<string> _hasExpressionTextHashSet;
         private readonly SchemaBase _commandSchema;
-        private readonly SchemaBase _rootSchema;
+        private readonly CommandSchema _rootSchema;
 
         public ArgsData(TMainCommand mainCommand, HashSet<string> hasExpressionTextHashSet, IReadOnlyList<string> extra,
-            SchemaBase commandSchema, object command, SchemaBase rootSchema)
+            SchemaBase commandSchema, object command, CommandSchema rootSchema)
         {
             MainCommand = mainCommand ?? throw new ArgumentNullException(nameof(mainCommand));
 
@@ -75,7 +75,7 @@ namespace ArgsToClass
             var propertyNames = expressionText.Split('.').Skip(1).ToArray();
 
 
-            SchemaBase GetSchemaBase(SchemaBase schemaBase, string propertyName)
+            SchemaBase GetSchemaBase(CommandSchema schemaBase, string propertyName)
             {
                 if (schemaBase == null)
                     return null;
@@ -98,12 +98,11 @@ namespace ArgsToClass
 
                 return null;
             }
-            
-            var schema = _rootSchema;
-            
+
+            SchemaBase schema = _rootSchema;
             foreach (var propertyName in propertyNames)
             {
-                schema = GetSchemaBase(schema, propertyName);
+                schema = GetSchemaBase(schema as CommandSchema, propertyName);
                 if(schema == null)
                     break;
             }

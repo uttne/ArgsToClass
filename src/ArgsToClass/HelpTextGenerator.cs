@@ -93,6 +93,12 @@ namespace ArgsToClass
             if (expression.Body.NodeType != ExpressionType.MemberAccess)
                 return null;
 
+            if (_commandSchema == null)
+            {
+                var schemaParser = new SchemaParser<TMainCommand>();
+                _commandSchema = schemaParser.Parse();
+            }
+
             var memberExpression = (MemberExpression) expression.Body;
             var list = new List<string>();
 
@@ -109,17 +115,17 @@ namespace ArgsToClass
                 list.Insert(0, name);
             }
 
-            SchemaBase schema = _commandSchema;
+            SchemaBase schema = null;
             foreach (var name in list)
             {
-                var command = schema.Commands.FirstOrDefault(x => x.PropertyInfo.Name == name);
+                var command = _commandSchema.Commands.FirstOrDefault(x => x.PropertyInfo.Name == name);
                 if (command != null)
                 {
                     schema = command;
                     continue;
                 }
 
-                var option = schema.Options.FirstOrDefault(x => x.PropertyInfo.Name == name);
+                var option = _commandSchema.Options.FirstOrDefault(x => x.PropertyInfo.Name == name);
 
                 if (option == null)
                     return null;
