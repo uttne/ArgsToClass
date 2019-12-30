@@ -46,7 +46,7 @@ namespace ArgsToClass.Tests
                 ".Command.Help",
             };
             var extra = new string[0];
-            var target = Activator.CreateInstance(type, option, expressionTextHashSet, extra, null, null, null);
+            var target = Activator.CreateInstance(type, option, expressionTextHashSet, extra, null, null, null, null);
 
             {
                 var method = target.GetType().GetMethod("Has")

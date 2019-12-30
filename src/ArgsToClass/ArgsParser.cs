@@ -11,10 +11,12 @@ namespace ArgsToClass
                 .ToArray();
 
 
-        internal static IReadOnlyList<(TokenBase, SchemaBase[])> ParseToTokenSchemaPairs(CommandSchema schema, string[] args)
+        internal static IReadOnlyList<(TokenBase, SchemaBase[])> ParseToTokenSchemaPairs(CommandSchema schema, CommandSchemaTree tree, string[] args)
         {
             if (schema == null)
                 throw new ArgumentNullException(nameof(schema));
+            if (tree == null)
+                throw new ArgumentNullException(nameof(tree));
             if (args == null)
                 throw new ArgumentNullException(nameof(args));
 
@@ -71,7 +73,7 @@ namespace ArgsToClass
                 }
                 else
                 {
-                    var command = schema.Commands.FirstOrDefault(x => string.Equals(x.Name, arg, StringComparison.OrdinalIgnoreCase));
+                    var command = tree.GetSubCommandSchemata(schema).FirstOrDefault(x => string.Equals(x.Name, arg, StringComparison.OrdinalIgnoreCase));
                     if (command != null)
                     {
                         list.Add((CommandToken.Create(command), new SchemaBase[] {command}));
@@ -121,21 +123,21 @@ namespace ArgsToClass
         }
 
 
-        private readonly CommandSchema _commandSchema;
+        private readonly (CommandSchema root,CommandSchemaTree tree) _commandSchema;
 
 
         public IArgsData<TOption> Parse(string[] args)
         {
             var rootSchema = _commandSchema;
 
-            var tokenSchemaPairs = ParseToTokenSchemaPairs(rootSchema, args);
+            var tokenSchemaPairs = ParseToTokenSchemaPairs(rootSchema.root, rootSchema.tree, args);
 
             var option = CreateOption(rootSchema, tokenSchemaPairs);
 
             return option;
         }
 
-        private IArgsData<TOption> CreateOption(CommandSchema rootSchema, IReadOnlyList<(TokenBase, SchemaBase[])> tokenSchemaPairs)
+        private IArgsData<TOption> CreateOption((CommandSchema root, CommandSchemaTree tree) rootSchema, IReadOnlyList<(TokenBase, SchemaBase[])> tokenSchemaPairs)
         {
             var option = ActivateOption();
             var hasExpressionTextHashSet = new HashSet<string>();
@@ -143,7 +145,7 @@ namespace ArgsToClass
             var extra = new List<string>();
 
             object commandCursor = option;
-            var commandSchemaCursor = rootSchema;
+            var commandSchemaCursor = rootSchema.root;
             var commands = new List<object> {commandCursor};
             // Key : commands index
             var extraSchemataDic = new Dictionary<int, ExtraSchema[]>();
@@ -198,17 +200,12 @@ namespace ArgsToClass
                 }
             }
 
-            return new ArgsData<TOption>(option, hasExpressionTextHashSet, extra, commandSchemaCursor, commandCursor, rootSchema);
+            return new ArgsData<TOption>(option, hasExpressionTextHashSet, extra, commandSchemaCursor, commandCursor, rootSchema.root, rootSchema.tree);
         }
 
         private static TOption ActivateOption()
         {
             return Activator.CreateInstance<TOption>();
-        }
-
-        public string GetHelpText(object option)
-        {
-            throw new NotImplementedException();
         }
     }
 }

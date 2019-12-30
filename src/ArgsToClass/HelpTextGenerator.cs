@@ -13,7 +13,7 @@ namespace ArgsToClass
     where TMainCommand:class,new()
     {
         private readonly IHelpTextFormatter _helpTextFormatter;
-        private CommandSchema _commandSchema;
+        private (CommandSchema root, CommandSchemaTree tree) _commandSchema = default;
 
         public HelpTextGenerator(IHelpTextFormatter helpTextFormatter = null)
         {
@@ -26,20 +26,20 @@ namespace ArgsToClass
         /// <returns>Help text</returns>
         public string GetHelpText()
         {
-            if (_commandSchema == null)
+            if (_commandSchema == default)
             {
                 var schemaParser = new SchemaParser<TMainCommand>();
                 _commandSchema = schemaParser.Parse();
             }
             
-            var schema = _commandSchema;
+            var schema = _commandSchema.root;
 
             switch (schema)
             {
                 case SubCommandSchema commandSchema:
-                    return _helpTextFormatter.Format(commandSchema);
+                    return _helpTextFormatter.Format(commandSchema, _commandSchema.tree.GetSubCommandSchemata(commandSchema).ToArray());
                 case CommandSchema rootSchema:
-                    return _helpTextFormatter.Format(rootSchema);
+                    return _helpTextFormatter.Format(rootSchema, _commandSchema.tree.GetSubCommandSchemata(rootSchema).ToArray());
                 default:
                     return null;
             }
@@ -52,14 +52,15 @@ namespace ArgsToClass
         /// <returns>Help text</returns>
         public string GetHelpText(IArgsData<TMainCommand> argsData)
         {
-            var schema = argsData.GetSchema();
+            var schema = argsData.GetRootSchema();
+            var subCommand = argsData.GetSubCommandSchemata();
 
             switch (schema)
             {
                 case SubCommandSchema commandSchema:
-                    return _helpTextFormatter.Format(commandSchema);
+                    return _helpTextFormatter.Format(commandSchema, subCommand);
                 case CommandSchema rootSchema:
-                    return _helpTextFormatter.Format(rootSchema);
+                    return _helpTextFormatter.Format(rootSchema, subCommand);
                 default:
                     return null;
             }
@@ -75,13 +76,14 @@ namespace ArgsToClass
         public string GetHelpText<TCommand>(IArgsData<TMainCommand> argsData, Expression<Func<TMainCommand, TCommand>> expression)
         {
             var schema = argsData.GetSchema(expression);
+            var subCommand = argsData.GetSubCommandSchemata();
 
             switch (schema)
             {
                 case SubCommandSchema commandSchema:
-                    return _helpTextFormatter.Format(commandSchema);
+                    return _helpTextFormatter.Format(commandSchema, subCommand);
                 case CommandSchema rootSchema:
-                    return _helpTextFormatter.Format(rootSchema);
+                    return _helpTextFormatter.Format(rootSchema, subCommand);
                 default:
                     return null;
             }
@@ -93,7 +95,7 @@ namespace ArgsToClass
             if (expression.Body.NodeType != ExpressionType.MemberAccess)
                 return null;
 
-            if (_commandSchema == null)
+            if (_commandSchema == default)
             {
                 var schemaParser = new SchemaParser<TMainCommand>();
                 _commandSchema = schemaParser.Parse();
@@ -118,14 +120,14 @@ namespace ArgsToClass
             SchemaBase schema = null;
             foreach (var name in list)
             {
-                var command = _commandSchema.Commands.FirstOrDefault(x => x.PropertyInfo.Name == name);
+                var command = _commandSchema.tree[_commandSchema.root].OfType<SubCommandSchema>().FirstOrDefault(x => x.PropertyInfo.Name == name);
                 if (command != null)
                 {
                     schema = command;
                     continue;
                 }
 
-                var option = _commandSchema.Options.FirstOrDefault(x => x.PropertyInfo.Name == name);
+                var option = _commandSchema.root.Options.FirstOrDefault(x => x.PropertyInfo.Name == name);
 
                 if (option == null)
                     return null;

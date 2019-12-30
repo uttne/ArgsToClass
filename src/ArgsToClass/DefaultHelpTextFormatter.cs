@@ -6,7 +6,7 @@ namespace ArgsToClass
 {
     public class DefaultHelpTextFormatter : IHelpTextFormatter
     {
-        public string Format(CommandSchema commandSchema)
+        public string Format(CommandSchema commandSchema, SubCommandSchema[] subCommandSchemata)
         {
             var sb = new StringBuilder();
 
@@ -32,14 +32,14 @@ namespace ArgsToClass
                 }
             }
 
-            if (commandSchema.Commands.Count != 0)
+            if (subCommandSchemata != null && subCommandSchemata.Length != 0)
             {
                 sb.AppendLine();
                 sb.AppendLine("command:");
 
-                var commandTextMaxLength = commandSchema.Commands.Max(x => x.Name.Length);
+                var commandTextMaxLength = subCommandSchemata.Max(x => x.Name.Length);
                 var commandFormat = $" {{0,-{commandTextMaxLength + 2}}}{{1}}";
-                foreach (var (name, description) in commandSchema.Commands.Select(x => (x.Name, x.Description ?? "")))
+                foreach (var (name, description) in subCommandSchemata.Select(x => (x.Name, x.Description ?? "")))
                 {
                     var descriptionLines = description.Replace("\r", "").Split('\n');
                     foreach (var (line, index) in descriptionLines.Select((line, index) => (line, index)))
@@ -55,7 +55,7 @@ namespace ArgsToClass
             return sb.ToString();
         }
 
-        public string Format(SubCommandSchema subCommandSchema)
+        public string Format(SubCommandSchema subCommandSchema, SubCommandSchema[] subCommandSchemata)
         {
             var sb = new StringBuilder();
 
@@ -72,13 +72,13 @@ namespace ArgsToClass
                 }
             }
 
-            if (subCommandSchema.Commands.Count != 0)
+            if (subCommandSchemata != null && subCommandSchemata.Length != 0)
             {
                 sb.AppendLine("command:");
 
-                var commandTextMaxLength = subCommandSchema.Commands.Max(x => x.Name.Length);
+                var commandTextMaxLength = subCommandSchemata.Max(x => x.Name.Length);
                 var commandFormat = $" {{0,-{commandTextMaxLength + 2}}}{{1}}";
-                foreach (var command in subCommandSchema.Commands)
+                foreach (var command in subCommandSchemata)
                 {
                     sb.AppendLine(string.Format(commandFormat, command.Name, command.Description));
                 }

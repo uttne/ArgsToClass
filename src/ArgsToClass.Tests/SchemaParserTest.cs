@@ -7,7 +7,8 @@ using Xunit;
 
 namespace ArgsToClass.Tests
 {
-    public class SchemaParserTest
+    using SchemaParserTestSpace;
+    namespace SchemaParserTestSpace
     {
         [Description("Root description")]
         public class OptionRoot
@@ -46,6 +47,32 @@ namespace ArgsToClass.Tests
             public Command1 Com1 { get; set; }
         }
 
+        //-------------------------
+
+        public class MainCommand01
+        {
+            [SubCommand]
+            public SubCommand100 SubCommand100 { get; set; }
+            public string Name { get; set; }
+        }
+
+        public class SubCommand100
+        {
+            [SubCommand]
+            public SubCommand101 SubCommand101 { get; set; }
+            public string Name { get; set; }
+        }
+
+        public class SubCommand101
+        {
+            [SubCommand]
+            public SubCommand100 SubCommand100 { get; set; }
+            public string Name { get; set; }
+        }
+    }
+
+    public class SchemaParserTest
+    {
         [Fact]
         public void ParseTest()
         {
@@ -55,12 +82,11 @@ namespace ArgsToClass.Tests
 
             var type = typeof(OptionRoot);
             var expected = new CommandSchema("Root description",typeof(OptionRoot),
-                SchemaParser.GetCommandSchemata(type),
                 SchemaParser.GetOptionSchemata(type),
                 SchemaParser.GetExtraSchemata(type)
                 );
             
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected, actual.root);
         }
 
         [Fact]
@@ -82,7 +108,7 @@ namespace ArgsToClass.Tests
         public void GeCommandSchemataTest()
         {
             var type = typeof(OptionRoot);
-            var command = SchemaParser.GetCommandSchemata(type).ToArray();
+            var command = SchemaParser.GetSubCommandSchemata(type).ToArray();
 
             SubCommandSchema[] expected = {
                 new SubCommandSchemaBuilder()
@@ -90,7 +116,6 @@ namespace ArgsToClass.Tests
                     Name = "com1",
                     Description = "Com1 description",
                     PropertyInfo = type.GetProperty(nameof(OptionRoot.Com1)),
-                    Commands = null,
                     Options = new[]
                     {
                         new OptionSchema(default,"opt1",null,typeof(Command1).GetProperty(nameof(Command1.Opt1))),
@@ -101,20 +126,6 @@ namespace ArgsToClass.Tests
                     Name = "com2",
                     Description = null,
                     PropertyInfo = type.GetProperty(nameof(OptionRoot.Com2)),
-                    Commands = new[]
-                    {
-                        new SubCommandSchemaBuilder()
-                        {
-                            Name = "com1",
-                            Description = null,
-                            PropertyInfo = typeof(Command2).GetProperty(nameof(Command2.Com1)),
-                            Commands = null,
-                            Options = new[]
-                            {
-                                new OptionSchema(default,"opt1",null,typeof(Command1).GetProperty(nameof(Command1.Opt1))),
-                            }
-                        }.Build(),
-                    },
                     Options = new[]
                     {
                         new OptionSchema(default,"opt1",null,typeof(Command2).GetProperty(nameof(Command2.Opt1))),
