@@ -42,10 +42,10 @@ namespace ArgsToClass.Tests
             var argsDataMock = new Mock<IArgsData<Option>>();
             var rootSchema = new SchemaParser<Option>().Parse();
 
-            SchemaBase schema = rootSchema;
+            var schema = rootSchema.root;
             var option = new Option();
             object command = option;
-            argsDataMock.Setup(x => x.GetSchema())
+            argsDataMock.Setup(x => x.GetRootSchema())
                 .Returns(()=>schema);
 
             var argsData = argsDataMock.Object;
@@ -61,7 +61,7 @@ namespace ArgsToClass.Tests
 
             {
                 command = option.Run;
-                schema = rootSchema.Commands.First();
+                schema = rootSchema.tree[rootSchema.root].First();
                 var actual = helpText.GetHelpText(argsData);
 
                 _testOutputHelper.WriteLine(actual);

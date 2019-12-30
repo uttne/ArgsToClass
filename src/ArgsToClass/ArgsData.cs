@@ -11,10 +11,11 @@ namespace ArgsToClass
     {
         private readonly HashSet<string> _hasExpressionTextHashSet;
         private readonly SchemaBase _commandSchema;
-        private readonly SchemaBase _rootSchema;
+        private readonly CommandSchema _rootSchema;
+        private readonly CommandSchemaTree _tree;
 
         public ArgsData(TMainCommand mainCommand, HashSet<string> hasExpressionTextHashSet, IReadOnlyList<string> extra,
-            SchemaBase commandSchema, object command, SchemaBase rootSchema)
+            SchemaBase commandSchema, object command, CommandSchema rootSchema, CommandSchemaTree tree)
         {
             MainCommand = mainCommand ?? throw new ArgumentNullException(nameof(mainCommand));
 
@@ -22,7 +23,7 @@ namespace ArgsToClass
             _commandSchema = commandSchema;
             Command = command ?? mainCommand;
             _rootSchema = rootSchema;
-
+            _tree = tree;
             Extra = extra ?? new string[0];
         }
 
@@ -75,16 +76,19 @@ namespace ArgsToClass
             var propertyNames = expressionText.Split('.').Skip(1).ToArray();
 
 
-            SchemaBase GetSchemaBase(SchemaBase schemaBase, string propertyName)
+            SchemaBase GetSchemaBase(CommandSchema schemaBase, string propertyName)
             {
                 if (schemaBase == null)
                     return null;
 
-                foreach (var commandSchema in schemaBase.Commands)
+                if (_tree?.ContainsKey(schemaBase) == true)
                 {
-                    if (commandSchema.PropertyInfo.Name == propertyName)
+                    foreach (var commandSchema in _tree.GetSubCommandSchemata(schemaBase))
                     {
-                        return commandSchema;
+                        if (commandSchema.PropertyInfo.Name == propertyName)
+                        {
+                            return commandSchema;
+                        }
                     }
                 }
 
@@ -98,12 +102,11 @@ namespace ArgsToClass
 
                 return null;
             }
-            
-            var schema = _rootSchema;
-            
+
+            SchemaBase schema = _rootSchema;
             foreach (var propertyName in propertyNames)
             {
-                schema = GetSchemaBase(schema, propertyName);
+                schema = GetSchemaBase(schema as CommandSchema, propertyName);
                 if(schema == null)
                     break;
             }
@@ -111,9 +114,14 @@ namespace ArgsToClass
             return schema;
         }
 
-        public SchemaBase GetSchema()
+        public CommandSchema GetRootSchema()
         {
             return _rootSchema;
+        }
+
+        public SubCommandSchema[] GetSubCommandSchemata()
+        {
+            return _tree?.GetSubCommandSchemata(_rootSchema).ToArray() ?? new SubCommandSchema[0];
         }
     }
 }

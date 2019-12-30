@@ -1,6 +1,7 @@
 ﻿using ArgsToClass.Attributes;
 using Xunit;
 using Xunit.Abstractions;
+using System.Linq;
 
 namespace ArgsToClass.Tests
 {
@@ -62,7 +63,7 @@ More description.")]
         {
             var formatter = new DefaultHelpTextFormatter();
             var rootSchema = new SchemaParser<Option>().Parse();
-            var text = formatter.Format(rootSchema);
+            var text = formatter.Format(rootSchema.root, rootSchema.tree[rootSchema.root].OfType<SubCommandSchema>().ToArray());
             _outputHelper.WriteLine(text);
         }
     }

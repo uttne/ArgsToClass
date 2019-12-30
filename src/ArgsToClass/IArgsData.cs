@@ -38,6 +38,12 @@ namespace ArgsToClass
         /// Get root option class schema data.
         /// </summary>
         /// <returns>schema</returns>
-        SchemaBase GetSchema();
+        CommandSchema GetRootSchema();
+
+        /// <summary>
+        /// Get sub command schemata of root command.
+        /// </summary>
+        /// <returns></returns>
+        SubCommandSchema[] GetSubCommandSchemata();
     }
 }

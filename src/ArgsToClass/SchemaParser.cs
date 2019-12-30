@@ -14,11 +14,10 @@ namespace ArgsToClass
         /// </summary>
         /// <remarks>
         /// Note that it is a recursive function via <see cref="GetSubCommandSchema"/>.
-        /// Todo Command が循環参照になっている場合スタックオーバーフローになると思うので適切な例外を発生するように修正する
         /// </remarks>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static IReadOnlyList<SubCommandSchema> GetCommandSchemata(Type type) =>
+        public static IReadOnlyList<SubCommandSchema> GetSubCommandSchemata(Type type) =>
             type.GetProperties()
                 .Where(prop => prop.CanWrite)
                 .Select(GetSchemaAttribute)
@@ -104,6 +103,35 @@ namespace ArgsToClass
             throw new NotImplementedException();
         }
 
-        public CommandSchema Parse() => CommandSchema.Create(typeof(T));
+        public (CommandSchema root, CommandSchemaTree tree) Parse() 
+        {
+            var root = CommandSchema.Create(typeof(T));
+
+            var dic = new Dictionary<CommandSchema, IEnumerable<CommandSchema>>();
+            var queue = new Queue<CommandSchema>();
+
+            queue.Enqueue(root);
+
+            while(queue.Count != 0)
+            {
+                var command = queue.Dequeue();
+                var subCommands = SchemaParser
+                    .GetSubCommandSchemata(command.Type)
+                    .Where(x=>dic.ContainsKey(x) == false)
+                    .Cast<CommandSchema>()                    
+                    .ToArray();
+
+                dic[command] = subCommands;
+
+                foreach(var subCommand in subCommands)
+                {
+                    queue.Enqueue(subCommand);
+                }
+            }
+
+            var tree = CommandSchemaTree.Create(dic.Select(x => (x.Key, x.Value)));
+
+            return (root, tree);
+        }
     }
 }

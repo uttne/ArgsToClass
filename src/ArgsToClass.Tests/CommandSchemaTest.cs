@@ -16,43 +16,6 @@ namespace ArgsToClass.Tests
             {
                 commands[i] = new SubCommandSchemaBuilder()
                 {
-                    Commands = new List<SubCommandSchema>()
-                    {
-                        new SubCommandSchemaBuilder()
-                        {
-                            Name = "command1",
-                            Description = "description1",
-                            PropertyInfo = typeof(SubCommandSchema).GetProperty(nameof(SubCommandSchema.PropertyInfo)),
-                            Commands = new List<SubCommandSchema>()
-                            {
-                                new SubCommandSchemaBuilder().Build(),
-                                null,
-                            },
-                            Options = new List<OptionSchema>()
-                            {
-                                new OptionSchemaBuilder().Build(),
-                                null,
-                            }
-                        }.Build(),
-                        new SubCommandSchemaBuilder()
-                        {
-                            Name = "command2",
-                            Description = "description2",
-                            PropertyInfo = typeof(SubCommandSchema).GetProperty(nameof(SubCommandSchema.PropertyInfo)),
-                            Commands = new List<SubCommandSchema>()
-                            {
-                                new SubCommandSchemaBuilder().Build(),
-                                null,
-                            },
-                            Options = new List<OptionSchema>()
-                            {
-                                new OptionSchemaBuilder().Build(),
-                                null,
-                            }
-                        }.Build(),
-                        new SubCommandSchemaBuilder().Build(),
-                        null,
-                    },
                     Options = new List<OptionSchema>()
                     {
                         new OptionSchemaBuilder()
