@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>ArgsToClass</PackageId>
-    <Version>0.0.3-alpha</Version>
+    <Version>0.1.0</Version>
     <Title>ArgsToClass</Title>
     <Authors>uttne</Authors>
     <Description>Parse command line arguments and create class data from it.</Description>
